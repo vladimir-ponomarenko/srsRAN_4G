@@ -46,6 +46,7 @@
 #include "srsenb/hdr/metrics_csv.h"
 #include "srsenb/hdr/metrics_e2.h"
 #include "srsenb/hdr/metrics_json.h"
+#include "srsenb/hdr/metrics_uds_sink.h"
 #include "srsenb/hdr/metrics_stdout.h"
 #include "srsran/common/enb_events.h"
 
@@ -263,6 +264,8 @@ void parse_args(all_args_t* args, int argc, char* argv[])
     ("expert.report_json_enable",  bpo::value<bool>(&args->general.report_json_enable)->default_value(false), "Write eNB report to JSON file (default disabled).")
     ("expert.report_json_filename", bpo::value<string>(&args->general.report_json_filename)->default_value("/tmp/enb_report.json"), "Report JSON filename (default /tmp/enb_report.json).")
     ("expert.report_json_asn1_oct",  bpo::value<bool>(&args->general.report_json_asn1_oct)->default_value(false), "Prints ASN1 messages encoded as an octet string instead of plain text in the JSON report file.")
+    ("expert.report_json_uds_enable",  bpo::value<bool>(&args->general.report_json_uds_enable)->default_value(false), "Write eNB metrics to JSON over UDS (default disabled).")
+    ("expert.report_json_uds_path", bpo::value<string>(&args->general.report_json_uds_path)->default_value("/tmp/enb_metrics.uds"), "Unix Domain Socket path for JSON metrics.")
     ("expert.alarms_log_enable",  bpo::value<bool>(&args->general.alarms_log_enable)->default_value(false), "Enable Alarms logging (default diabled).")
     ("expert.alarms_filename", bpo::value<string>(&args->general.alarms_filename)->default_value("/tmp/enb_alarms.log"), "Alarms logging filename (default /tmp/alarms.log).")
     ("expert.tracing_enable",  bpo::value<bool>(&args->general.tracing_enable)->default_value(false), "Events tracing.")
@@ -664,6 +667,24 @@ int main(int argc, char* argv[])
   srslog::log_channel& json_channel = srslog::fetch_log_channel("JSON_channel", json_sink, {});
   json_channel.set_enabled(args.general.report_json_enable);
 
+  srslog::log_channel* json_uds_channel = nullptr;
+  if (args.general.report_json_uds_enable) {
+    const std::string sink_id = "report_json_uds:" + args.general.report_json_uds_path;
+    if (!srslog::find_sink(sink_id)) {
+      auto uds_sink = std::unique_ptr<srslog::sink>(
+          new srslog::uds_sink(args.general.report_json_uds_path, srslog::create_json_formatter()));
+      if (!srslog::install_custom_sink(sink_id, std::move(uds_sink))) {
+        srsran::console_stderr("Failed to install UDS metrics sink: %s", sink_id.c_str());
+      }
+    }
+    if (srslog::sink* s = srslog::find_sink(sink_id)) {
+      json_uds_channel = &srslog::fetch_log_channel("JSON_UDS_channel", *s, {});
+      json_uds_channel->set_enabled(true);
+    } else {
+      srsran::console_stderr("Failed to find UDS metrics sink: %s", sink_id.c_str());
+    }
+  }
+
   // Configure the event logger just before starting the eNB class.
   if (args.general.report_json_enable) {
     event_logger::asn1_output_format format = (args.general.report_json_asn1_oct)
@@ -696,6 +717,12 @@ int main(int argc, char* argv[])
   srsenb::metrics_json json_metrics(json_channel, enb.get());
   if (args.general.report_json_enable) {
     metricshub.add_listener(&json_metrics);
+  }
+
+  std::unique_ptr<srsenb::metrics_json> json_uds_metrics;
+  if (json_uds_channel) {
+    json_uds_metrics.reset(new srsenb::metrics_json(*json_uds_channel, enb.get()));
+    metricshub.add_listener(json_uds_metrics.get());
   }
   srsenb::metrics_e2 e2_metrics(enb.get());
   if (args.e2_agent.enable) {

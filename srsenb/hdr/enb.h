@@ -100,6 +100,8 @@ struct general_args_t {
   bool        report_json_enable;
   std::string report_json_filename;
   bool        report_json_asn1_oct;
+  bool        report_json_uds_enable;
+  std::string report_json_uds_path;
   bool        alarms_log_enable;
   std::string alarms_filename;
   bool        print_buffer_state;

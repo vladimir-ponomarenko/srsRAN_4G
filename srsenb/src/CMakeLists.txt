@@ -38,7 +38,7 @@ add_library(srsenb_cbs_encoding cbs_encoding/cbs_encoder.cpp)
 add_library(enb_cfg_parser STATIC parser.cc enb_cfg_parser.cc)
 target_link_libraries(enb_cfg_parser srsran_common srsgnb_rrc_config_utils srsenb_cbs_encoding ${LIBCONFIGPP_LIBRARIES})
 
-add_executable(srsenb main.cc enb.cc metrics_stdout.cc metrics_csv.cc metrics_json.cc metrics_e2.cc)
+add_executable(srsenb main.cc enb.cc metrics_stdout.cc metrics_csv.cc metrics_json.cc metrics_e2.cc metrics_uds_sink.cc)
 
 set(SRSENB_SOURCES srsenb_phy srsenb_stack srsenb_common srsenb_s1ap srsenb_upper srsenb_mac srsenb_rrc srslog system)
 set(SRSRAN_SOURCES srsran_common srsran_mac srsran_phy srsran_gtpu srsran_rlc srsran_pdcp srsran_radio rrc_asn1 s1ap_asn1 enb_cfg_parser srslog support system)

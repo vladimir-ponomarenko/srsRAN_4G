@@ -401,6 +401,8 @@ enable = false
 # report_json_enable:   Write eNB report to JSON file (default: disabled)
 # report_json_filename: Report JSON filename (default: /tmp/enb_report.json)
 # report_json_asn1_oct: Prints ASN1 messages encoded as an octet string instead of plain text in the JSON report file
+# report_json_uds_enable: Write eNB metrics to JSON over UDS (default: disabled)
+# report_json_uds_path:  Unix Domain Socket path for JSON metrics (default: /tmp/enb_metrics.uds). Use '@name' for abstract namespace.
 # alarms_log_enable:    Enable Alarms logging (default: disabled)
 # alarms_filename:      Alarms logging filename (default: /tmp/alarms.log)
 # tracing_enable:       Write source code tracing information to a file
@@ -437,6 +439,8 @@ enable = false
 #report_json_enable   = true
 #report_json_filename = /tmp/enb_report.json
 #report_json_asn1_oct = false
+#report_json_uds_enable = false
+#report_json_uds_path   = /tmp/enb_metrics.uds
 #alarms_log_enable    = true
 #alarms_filename      = /tmp/enb_alarms.log
 #tracing_enable       = true
