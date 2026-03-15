@@ -24,6 +24,7 @@
 
 #include "srsenb/hdr/common/common_enb.h"
 #include <cstdint>
+#include <string>
 #include <vector>
 
 namespace srsenb {
@@ -44,6 +45,7 @@ typedef enum {
 
 struct rrc_ue_metrics_t {
   rrc_state_t                                 state;
+  uint32_t                                    state_code = 0;
   std::vector<std::pair<uint32_t, uint32_t> > drb_qci_map;
   uint32_t                                    nof_cells = 0;
   bool                                        is_allocated = false;
@@ -74,6 +76,7 @@ struct rrc_ue_metrics_t {
   uint32_t                                    rlc_rlf_timer_duration = 0;
   uint32_t                                    last_ul_msg_bytes = 0;
   bool                                        eutra_capabilities_unpacked = false;
+  std::string                                 rrc_release_cause;
   uint32_t                                    rrc_con_req_rx = 0;
   uint32_t                                    rrc_con_setup_tx = 0;
   uint32_t                                    rrc_con_setup_complete_rx = 0;

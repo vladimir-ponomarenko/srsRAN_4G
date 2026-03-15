@@ -245,6 +245,7 @@ private:
   uint32_t rrc_ue_info_resp_rx   = 0;
   uint32_t rrc_max_rlc_retx      = 0;
   uint32_t rrc_protocol_fail     = 0;
+  asn1::rrc::release_cause_e last_release_cause = asn1::rrc::release_cause_e::other;
 
   /// Helper to fill cell_ded_list with SCells provided in the eNB config
   void update_scells();

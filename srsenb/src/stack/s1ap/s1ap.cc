@@ -21,6 +21,7 @@
 
 #include "srsenb/hdr/stack/s1ap/s1ap.h"
 #include "srsran/adt/scope_exit.h"
+#include "srsran/asn1/liblte_mme.h"
 #include "srsran/common/bcd_helpers.h"
 #include "srsran/common/enb_events.h"
 #include "srsran/common/int_helpers.h"
@@ -390,6 +391,306 @@ void s1ap::get_metrics(s1ap_metrics_t& m)
   m.nas_dl_drop  = nas_dl_drop.load(std::memory_order_relaxed);
   m.nas_ul_bytes = nas_ul_bytes.load(std::memory_order_relaxed);
   m.nas_dl_bytes = nas_dl_bytes.load(std::memory_order_relaxed);
+  m.nas_ul_transport_initial_ue = nas_ul_transport_initial_ue.load(std::memory_order_relaxed);
+  m.nas_ul_transport_ul_nas     = nas_ul_transport_ul_nas.load(std::memory_order_relaxed);
+  m.nas_dl_transport_dl_nas     = nas_dl_transport_dl_nas.load(std::memory_order_relaxed);
+  m.nas_ul_sec_hdr_plain        = nas_ul_sec_hdr_plain.load(std::memory_order_relaxed);
+  m.nas_ul_sec_hdr_integrity    = nas_ul_sec_hdr_integrity.load(std::memory_order_relaxed);
+  m.nas_ul_sec_hdr_integrity_ciphered = nas_ul_sec_hdr_integrity_ciphered.load(std::memory_order_relaxed);
+  m.nas_ul_sec_hdr_integrity_new_ctx  = nas_ul_sec_hdr_integrity_new_ctx.load(std::memory_order_relaxed);
+  m.nas_ul_sec_hdr_integrity_ciphered_new_ctx =
+      nas_ul_sec_hdr_integrity_ciphered_new_ctx.load(std::memory_order_relaxed);
+  m.nas_ul_sec_hdr_service_request = nas_ul_sec_hdr_service_request.load(std::memory_order_relaxed);
+  m.nas_ul_sec_hdr_unknown         = nas_ul_sec_hdr_unknown.load(std::memory_order_relaxed);
+  m.nas_dl_sec_hdr_plain           = nas_dl_sec_hdr_plain.load(std::memory_order_relaxed);
+  m.nas_dl_sec_hdr_integrity       = nas_dl_sec_hdr_integrity.load(std::memory_order_relaxed);
+  m.nas_dl_sec_hdr_integrity_ciphered = nas_dl_sec_hdr_integrity_ciphered.load(std::memory_order_relaxed);
+  m.nas_dl_sec_hdr_integrity_new_ctx  = nas_dl_sec_hdr_integrity_new_ctx.load(std::memory_order_relaxed);
+  m.nas_dl_sec_hdr_integrity_ciphered_new_ctx =
+      nas_dl_sec_hdr_integrity_ciphered_new_ctx.load(std::memory_order_relaxed);
+  m.nas_dl_sec_hdr_service_request = nas_dl_sec_hdr_service_request.load(std::memory_order_relaxed);
+  m.nas_dl_sec_hdr_unknown         = nas_dl_sec_hdr_unknown.load(std::memory_order_relaxed);
+  m.nas_ul_pd_emm                  = nas_ul_pd_emm.load(std::memory_order_relaxed);
+  m.nas_ul_pd_esm                  = nas_ul_pd_esm.load(std::memory_order_relaxed);
+  m.nas_ul_pd_other                = nas_ul_pd_other.load(std::memory_order_relaxed);
+  m.nas_dl_pd_emm                  = nas_dl_pd_emm.load(std::memory_order_relaxed);
+  m.nas_dl_pd_esm                  = nas_dl_pd_esm.load(std::memory_order_relaxed);
+  m.nas_dl_pd_other                = nas_dl_pd_other.load(std::memory_order_relaxed);
+  m.nas_ul_pd_last                 = nas_ul_pd_last.load(std::memory_order_relaxed);
+  m.nas_dl_pd_last                 = nas_dl_pd_last.load(std::memory_order_relaxed);
+  m.nas_ul_short_pdu               = nas_ul_short_pdu.load(std::memory_order_relaxed);
+  m.nas_dl_short_pdu               = nas_dl_short_pdu.load(std::memory_order_relaxed);
+  m.nas_ul_parse_fail              = nas_ul_parse_fail.load(std::memory_order_relaxed);
+  m.nas_dl_parse_fail              = nas_dl_parse_fail.load(std::memory_order_relaxed);
+  m.nas_ul_attach                  = nas_ul_attach.load(std::memory_order_relaxed);
+  m.nas_dl_attach                  = nas_dl_attach.load(std::memory_order_relaxed);
+  m.nas_ul_tau                     = nas_ul_tau.load(std::memory_order_relaxed);
+  m.nas_dl_tau                     = nas_dl_tau.load(std::memory_order_relaxed);
+  m.nas_ul_service_request         = nas_ul_service_request.load(std::memory_order_relaxed);
+  m.nas_dl_service_request         = nas_dl_service_request.load(std::memory_order_relaxed);
+  m.nas_dl_service_reject          = nas_dl_service_reject.load(std::memory_order_relaxed);
+  m.nas_ul_identity                = nas_ul_identity.load(std::memory_order_relaxed);
+  m.nas_dl_identity                = nas_dl_identity.load(std::memory_order_relaxed);
+  m.nas_ul_authentication          = nas_ul_authentication.load(std::memory_order_relaxed);
+  m.nas_dl_authentication          = nas_dl_authentication.load(std::memory_order_relaxed);
+  m.nas_ul_security_mode           = nas_ul_security_mode.load(std::memory_order_relaxed);
+  m.nas_dl_security_mode           = nas_dl_security_mode.load(std::memory_order_relaxed);
+  m.nas_ul_detach                  = nas_ul_detach.load(std::memory_order_relaxed);
+  m.nas_dl_detach                  = nas_dl_detach.load(std::memory_order_relaxed);
+  m.nas_ul_emm_status              = nas_ul_emm_status.load(std::memory_order_relaxed);
+  m.nas_dl_emm_status              = nas_dl_emm_status.load(std::memory_order_relaxed);
+  m.nas_ul_esm_information         = nas_ul_esm_information.load(std::memory_order_relaxed);
+  m.nas_dl_esm_information         = nas_dl_esm_information.load(std::memory_order_relaxed);
+  m.nas_ul_pdn_connectivity        = nas_ul_pdn_connectivity.load(std::memory_order_relaxed);
+  m.nas_dl_pdn_connectivity        = nas_dl_pdn_connectivity.load(std::memory_order_relaxed);
+  m.nas_ul_pdn_disconnect          = nas_ul_pdn_disconnect.load(std::memory_order_relaxed);
+  m.nas_dl_pdn_disconnect          = nas_dl_pdn_disconnect.load(std::memory_order_relaxed);
+  m.nas_ul_default_bearer          = nas_ul_default_bearer.load(std::memory_order_relaxed);
+  m.nas_dl_default_bearer          = nas_dl_default_bearer.load(std::memory_order_relaxed);
+  m.nas_ul_dedicated_bearer        = nas_ul_dedicated_bearer.load(std::memory_order_relaxed);
+  m.nas_dl_dedicated_bearer        = nas_dl_dedicated_bearer.load(std::memory_order_relaxed);
+  m.nas_ul_modify_bearer           = nas_ul_modify_bearer.load(std::memory_order_relaxed);
+  m.nas_dl_modify_bearer           = nas_dl_modify_bearer.load(std::memory_order_relaxed);
+  m.nas_ul_deactivate_bearer       = nas_ul_deactivate_bearer.load(std::memory_order_relaxed);
+  m.nas_dl_deactivate_bearer       = nas_dl_deactivate_bearer.load(std::memory_order_relaxed);
+  m.nas_ul_bearer_resource         = nas_ul_bearer_resource.load(std::memory_order_relaxed);
+  m.nas_dl_bearer_resource         = nas_dl_bearer_resource.load(std::memory_order_relaxed);
+  m.nas_ul_generic_transport       = nas_ul_generic_transport.load(std::memory_order_relaxed);
+  m.nas_dl_generic_transport       = nas_dl_generic_transport.load(std::memory_order_relaxed);
+  m.nas_dl_cs_service_notification = nas_dl_cs_service_notification.load(std::memory_order_relaxed);
+  m.nas_ul_other                   = nas_ul_other.load(std::memory_order_relaxed);
+  m.nas_dl_other                   = nas_dl_other.load(std::memory_order_relaxed);
+  m.nas_ul_unknown                 = nas_ul_unknown.load(std::memory_order_relaxed);
+  m.nas_dl_unknown                 = nas_dl_unknown.load(std::memory_order_relaxed);
+}
+
+void s1ap::update_nas_l3_counters(const uint8_t* data, uint32_t len, bool is_uplink, nas_transport_t transport)
+{
+  if (is_uplink) {
+    switch (transport) {
+      case nas_transport_t::initial_ue:
+        nas_ul_transport_initial_ue.fetch_add(1, std::memory_order_relaxed);
+        break;
+      case nas_transport_t::ul_nas_transport:
+        nas_ul_transport_ul_nas.fetch_add(1, std::memory_order_relaxed);
+        break;
+      case nas_transport_t::dl_nas_transport:
+        break;
+    }
+  } else {
+    switch (transport) {
+      case nas_transport_t::dl_nas_transport:
+        nas_dl_transport_dl_nas.fetch_add(1, std::memory_order_relaxed);
+        break;
+      case nas_transport_t::initial_ue:
+      case nas_transport_t::ul_nas_transport:
+        break;
+    }
+  }
+
+  if (data == nullptr || len == 0) {
+    if (is_uplink) {
+      nas_ul_short_pdu.fetch_add(1, std::memory_order_relaxed);
+    } else {
+      nas_dl_short_pdu.fetch_add(1, std::memory_order_relaxed);
+    }
+    return;
+  }
+
+  LIBLTE_BYTE_MSG_STRUCT msg = {};
+  if (len > LIBLTE_MAX_MSG_SIZE_BYTES) {
+    len = LIBLTE_MAX_MSG_SIZE_BYTES;
+  }
+  msg.N_bytes = len;
+  memcpy(msg.msg, data, len);
+
+  uint8 pd = 0;
+  uint8 sec_hdr_type = 0;
+  if (liblte_mme_parse_msg_sec_header(&msg, &pd, &sec_hdr_type) != LIBLTE_SUCCESS) {
+    if (is_uplink) {
+      nas_ul_parse_fail.fetch_add(1, std::memory_order_relaxed);
+    } else {
+      nas_dl_parse_fail.fetch_add(1, std::memory_order_relaxed);
+    }
+    return;
+  }
+
+  const bool is_emm = (pd == LIBLTE_MME_PD_EPS_MOBILITY_MANAGEMENT);
+  const bool is_esm = (pd == LIBLTE_MME_PD_EPS_SESSION_MANAGEMENT);
+
+  if (is_uplink) {
+    if (is_emm) {
+      nas_ul_pd_emm.fetch_add(1, std::memory_order_relaxed);
+    } else if (is_esm) {
+      nas_ul_pd_esm.fetch_add(1, std::memory_order_relaxed);
+    } else {
+      nas_ul_pd_other.fetch_add(1, std::memory_order_relaxed);
+    }
+    nas_ul_pd_last.store(pd, std::memory_order_relaxed);
+  } else {
+    if (is_emm) {
+      nas_dl_pd_emm.fetch_add(1, std::memory_order_relaxed);
+    } else if (is_esm) {
+      nas_dl_pd_esm.fetch_add(1, std::memory_order_relaxed);
+    } else {
+      nas_dl_pd_other.fetch_add(1, std::memory_order_relaxed);
+    }
+    nas_dl_pd_last.store(pd, std::memory_order_relaxed);
+  }
+
+  auto inc_sec_hdr = [&](std::atomic<uint64_t>& counter) {
+    counter.fetch_add(1, std::memory_order_relaxed);
+  };
+
+  switch (sec_hdr_type) {
+    case LIBLTE_MME_SECURITY_HDR_TYPE_PLAIN_NAS:
+      inc_sec_hdr(is_uplink ? nas_ul_sec_hdr_plain : nas_dl_sec_hdr_plain);
+      break;
+    case LIBLTE_MME_SECURITY_HDR_TYPE_INTEGRITY:
+      inc_sec_hdr(is_uplink ? nas_ul_sec_hdr_integrity : nas_dl_sec_hdr_integrity);
+      break;
+    case LIBLTE_MME_SECURITY_HDR_TYPE_INTEGRITY_AND_CIPHERED:
+      inc_sec_hdr(is_uplink ? nas_ul_sec_hdr_integrity_ciphered : nas_dl_sec_hdr_integrity_ciphered);
+      break;
+    case LIBLTE_MME_SECURITY_HDR_TYPE_INTEGRITY_WITH_NEW_EPS_SECURITY_CONTEXT:
+      inc_sec_hdr(is_uplink ? nas_ul_sec_hdr_integrity_new_ctx : nas_dl_sec_hdr_integrity_new_ctx);
+      break;
+    case LIBLTE_MME_SECURITY_HDR_TYPE_INTEGRITY_AND_CIPHERED_WITH_NEW_EPS_SECURITY_CONTEXT:
+      inc_sec_hdr(is_uplink ? nas_ul_sec_hdr_integrity_ciphered_new_ctx
+                            : nas_dl_sec_hdr_integrity_ciphered_new_ctx);
+      break;
+    case LIBLTE_MME_SECURITY_HDR_TYPE_SERVICE_REQUEST:
+      inc_sec_hdr(is_uplink ? nas_ul_sec_hdr_service_request : nas_dl_sec_hdr_service_request);
+      if (is_uplink) {
+        nas_ul_service_request.fetch_add(1, std::memory_order_relaxed);
+      } else {
+        nas_dl_service_request.fetch_add(1, std::memory_order_relaxed);
+      }
+      break;
+    default:
+      inc_sec_hdr(is_uplink ? nas_ul_sec_hdr_unknown : nas_dl_sec_hdr_unknown);
+      break;
+  }
+
+  const bool allow_msg_type =
+      (sec_hdr_type == LIBLTE_MME_SECURITY_HDR_TYPE_PLAIN_NAS) ||
+      (sec_hdr_type == LIBLTE_MME_SECURITY_HDR_TYPE_INTEGRITY) ||
+      (sec_hdr_type == LIBLTE_MME_SECURITY_HDR_TYPE_INTEGRITY_WITH_NEW_EPS_SECURITY_CONTEXT);
+  if (!allow_msg_type) {
+    return;
+  }
+
+  uint8 msg_type = 0;
+  if (liblte_mme_parse_msg_header(&msg, &pd, &msg_type) != LIBLTE_SUCCESS) {
+    if (is_uplink) {
+      nas_ul_unknown.fetch_add(1, std::memory_order_relaxed);
+    } else {
+      nas_dl_unknown.fetch_add(1, std::memory_order_relaxed);
+    }
+    return;
+  }
+
+  auto inc_cat = [&](std::atomic<uint64_t>& ul_counter, std::atomic<uint64_t>& dl_counter) {
+    if (is_uplink) {
+      ul_counter.fetch_add(1, std::memory_order_relaxed);
+    } else {
+      dl_counter.fetch_add(1, std::memory_order_relaxed);
+    }
+  };
+
+  switch (msg_type) {
+    case LIBLTE_MME_MSG_TYPE_ATTACH_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_ATTACH_ACCEPT:
+    case LIBLTE_MME_MSG_TYPE_ATTACH_COMPLETE:
+    case LIBLTE_MME_MSG_TYPE_ATTACH_REJECT:
+      inc_cat(nas_ul_attach, nas_dl_attach);
+      break;
+    case LIBLTE_MME_MSG_TYPE_TRACKING_AREA_UPDATE_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_TRACKING_AREA_UPDATE_ACCEPT:
+    case LIBLTE_MME_MSG_TYPE_TRACKING_AREA_UPDATE_REJECT:
+    case LIBLTE_MME_MSG_TYPE_TRACKING_AREA_UPDATE_COMPLETE:
+      inc_cat(nas_ul_tau, nas_dl_tau);
+      break;
+    case LIBLTE_MME_MSG_TYPE_EXTENDED_SERVICE_REQUEST:
+      inc_cat(nas_ul_service_request, nas_dl_service_request);
+      break;
+    case LIBLTE_MME_MSG_TYPE_SERVICE_REJECT:
+      if (!is_uplink) {
+        nas_dl_service_reject.fetch_add(1, std::memory_order_relaxed);
+      }
+      break;
+    case LIBLTE_MME_MSG_TYPE_IDENTITY_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_IDENTITY_RESPONSE:
+      inc_cat(nas_ul_identity, nas_dl_identity);
+      break;
+    case LIBLTE_MME_MSG_TYPE_AUTHENTICATION_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_AUTHENTICATION_RESPONSE:
+    case LIBLTE_MME_MSG_TYPE_AUTHENTICATION_REJECT:
+    case LIBLTE_MME_MSG_TYPE_AUTHENTICATION_FAILURE:
+      inc_cat(nas_ul_authentication, nas_dl_authentication);
+      break;
+    case LIBLTE_MME_MSG_TYPE_SECURITY_MODE_COMMAND:
+    case LIBLTE_MME_MSG_TYPE_SECURITY_MODE_COMPLETE:
+    case LIBLTE_MME_MSG_TYPE_SECURITY_MODE_REJECT:
+      inc_cat(nas_ul_security_mode, nas_dl_security_mode);
+      break;
+    case LIBLTE_MME_MSG_TYPE_DETACH_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_DETACH_ACCEPT:
+      inc_cat(nas_ul_detach, nas_dl_detach);
+      break;
+    case LIBLTE_MME_MSG_TYPE_EMM_STATUS:
+      inc_cat(nas_ul_emm_status, nas_dl_emm_status);
+      break;
+    case LIBLTE_MME_MSG_TYPE_ESM_INFORMATION_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_ESM_INFORMATION_RESPONSE:
+      inc_cat(nas_ul_esm_information, nas_dl_esm_information);
+      break;
+    case LIBLTE_MME_MSG_TYPE_PDN_CONNECTIVITY_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_PDN_CONNECTIVITY_REJECT:
+      inc_cat(nas_ul_pdn_connectivity, nas_dl_pdn_connectivity);
+      break;
+    case LIBLTE_MME_MSG_TYPE_PDN_DISCONNECT_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_PDN_DISCONNECT_REJECT:
+      inc_cat(nas_ul_pdn_disconnect, nas_dl_pdn_disconnect);
+      break;
+    case LIBLTE_MME_MSG_TYPE_ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT:
+    case LIBLTE_MME_MSG_TYPE_ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT:
+      inc_cat(nas_ul_default_bearer, nas_dl_default_bearer);
+      break;
+    case LIBLTE_MME_MSG_TYPE_ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
+    case LIBLTE_MME_MSG_TYPE_ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT:
+      inc_cat(nas_ul_dedicated_bearer, nas_dl_dedicated_bearer);
+      break;
+    case LIBLTE_MME_MSG_TYPE_MODIFY_EPS_BEARER_CONTEXT_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_MODIFY_EPS_BEARER_CONTEXT_ACCEPT:
+    case LIBLTE_MME_MSG_TYPE_MODIFY_EPS_BEARER_CONTEXT_REJECT:
+      inc_cat(nas_ul_modify_bearer, nas_dl_modify_bearer);
+      break;
+    case LIBLTE_MME_MSG_TYPE_DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT:
+      inc_cat(nas_ul_deactivate_bearer, nas_dl_deactivate_bearer);
+      break;
+    case LIBLTE_MME_MSG_TYPE_BEARER_RESOURCE_ALLOCATION_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_BEARER_RESOURCE_ALLOCATION_REJECT:
+    case LIBLTE_MME_MSG_TYPE_BEARER_RESOURCE_MODIFICATION_REQUEST:
+    case LIBLTE_MME_MSG_TYPE_BEARER_RESOURCE_MODIFICATION_REJECT:
+      inc_cat(nas_ul_bearer_resource, nas_dl_bearer_resource);
+      break;
+    case LIBLTE_MME_MSG_TYPE_UPLINK_GENERIC_NAS_TRANSPORT:
+    case LIBLTE_MME_MSG_TYPE_DOWNLINK_GENERIC_NAS_TRANSPORT:
+      inc_cat(nas_ul_generic_transport, nas_dl_generic_transport);
+      break;
+    case LIBLTE_MME_MSG_TYPE_CS_SERVICE_NOTIFICATION:
+      if (!is_uplink) {
+        nas_dl_cs_service_notification.fetch_add(1, std::memory_order_relaxed);
+      }
+      break;
+    default:
+      inc_cat(nas_ul_other, nas_dl_other);
+      break;
+  }
 }
 
 // Generate common S1AP protocol IEs from config args
@@ -820,6 +1121,7 @@ bool s1ap::handle_dlnastransport(const dl_nas_transport_s& msg)
   pdu->N_bytes = msg->nas_pdu.value.size();
   nas_dl_msgs.fetch_add(1, std::memory_order_relaxed);
   nas_dl_bytes.fetch_add(pdu->N_bytes, std::memory_order_relaxed);
+  update_nas_l3_counters(pdu->msg, pdu->N_bytes, false, nas_transport_t::dl_nas_transport);
   rrc->write_dl_info(u->ctxt.rnti, std::move(pdu));
   return true;
 }
@@ -1505,6 +1807,7 @@ bool s1ap::ue::send_initialuemessage(asn1::s1ap::rrc_establishment_cause_e cause
   if (ok) {
     s1ap_ptr->nas_ul_msgs.fetch_add(1, std::memory_order_relaxed);
     s1ap_ptr->nas_ul_bytes.fetch_add(nas_size, std::memory_order_relaxed);
+    s1ap_ptr->update_nas_l3_counters(pdu->msg, pdu->N_bytes, true, nas_transport_t::initial_ue);
   } else {
     s1ap_ptr->nas_ul_fail.fetch_add(1, std::memory_order_relaxed);
   }
@@ -1540,6 +1843,7 @@ bool s1ap::ue::send_ulnastransport(srsran::unique_byte_buffer_t pdu)
   if (ok) {
     s1ap_ptr->nas_ul_msgs.fetch_add(1, std::memory_order_relaxed);
     s1ap_ptr->nas_ul_bytes.fetch_add(nas_size, std::memory_order_relaxed);
+    s1ap_ptr->update_nas_l3_counters(pdu->msg, pdu->N_bytes, true, nas_transport_t::ul_nas_transport);
   } else {
     s1ap_ptr->nas_ul_fail.fetch_add(1, std::memory_order_relaxed);
   }

@@ -66,6 +66,7 @@ DECLARE_METRIC("ul_bler", metric_ul_bler, float, "");
 DECLARE_METRIC("ul_phr", metric_ul_phr, float, "");
 DECLARE_METRIC("ul_bsr", metric_bsr, uint32_t, "");
 DECLARE_METRIC("rrc_state_str", metric_rrc_state_str, std::string, "");
+DECLARE_METRIC("rrc_state", metric_rrc_state, uint32_t, "");
 DECLARE_METRIC("rrc_drb_count", metric_rrc_drb_count, uint32_t, "");
 DECLARE_METRIC("rrc_nof_cells", metric_rrc_nof_cells, uint32_t, "");
 DECLARE_METRIC("rrc_is_allocated", metric_rrc_is_allocated, uint32_t, "");
@@ -96,6 +97,7 @@ DECLARE_METRIC("rrc_rlc_rlf_timer_elapsed", metric_rrc_rlc_rlf_timer_elapsed, ui
 DECLARE_METRIC("rrc_rlc_rlf_timer_duration", metric_rrc_rlc_rlf_timer_duration, uint32_t, "");
 DECLARE_METRIC("rrc_last_ul_msg_bytes", metric_rrc_last_ul_msg_bytes, uint32_t, "");
 DECLARE_METRIC("rrc_eutra_capabilities_unpacked", metric_rrc_eutra_capabilities_unpacked, uint32_t, "");
+DECLARE_METRIC("rrc_release_cause", metric_rrc_release_cause, std::string, "");
 DECLARE_METRIC("rrc_con_req_rx", metric_rrc_con_req_rx, uint32_t, "");
 DECLARE_METRIC("rrc_con_setup_tx", metric_rrc_con_setup_tx, uint32_t, "");
 DECLARE_METRIC("rrc_con_setup_complete_rx", metric_rrc_con_setup_complete_rx, uint32_t, "");
@@ -138,6 +140,7 @@ DECLARE_METRIC_SET("ue_container",
                    metric_ul_phr,
                    metric_bsr,
                    metric_rrc_state_str,
+                   metric_rrc_state,
                    metric_rrc_drb_count,
                    metric_rrc_nof_cells,
                    metric_rrc_is_allocated,
@@ -168,6 +171,7 @@ DECLARE_METRIC_SET("ue_container",
                    metric_rrc_rlc_rlf_timer_duration,
                    metric_rrc_last_ul_msg_bytes,
                    metric_rrc_eutra_capabilities_unpacked,
+                   metric_rrc_release_cause,
                    metric_rrc_con_req_rx,
                    metric_rrc_con_setup_tx,
                    metric_rrc_con_setup_complete_rx,
@@ -210,6 +214,81 @@ DECLARE_METRIC("nas_dl_msgs", metric_nas_dl_msgs, uint64_t, "");
 DECLARE_METRIC("nas_dl_drop", metric_nas_dl_drop, uint64_t, "");
 DECLARE_METRIC("nas_ul_bytes", metric_nas_ul_bytes, uint64_t, "");
 DECLARE_METRIC("nas_dl_bytes", metric_nas_dl_bytes, uint64_t, "");
+DECLARE_METRIC("nas_ul_transport_initial_ue", metric_nas_ul_transport_initial_ue, uint64_t, "");
+DECLARE_METRIC("nas_ul_transport_ul_nas", metric_nas_ul_transport_ul_nas, uint64_t, "");
+DECLARE_METRIC("nas_dl_transport_dl_nas", metric_nas_dl_transport_dl_nas, uint64_t, "");
+DECLARE_METRIC("nas_ul_sec_hdr_plain", metric_nas_ul_sec_hdr_plain, uint64_t, "");
+DECLARE_METRIC("nas_ul_sec_hdr_integrity", metric_nas_ul_sec_hdr_integrity, uint64_t, "");
+DECLARE_METRIC("nas_ul_sec_hdr_integrity_ciphered", metric_nas_ul_sec_hdr_integrity_ciphered, uint64_t, "");
+DECLARE_METRIC("nas_ul_sec_hdr_integrity_new_ctx", metric_nas_ul_sec_hdr_integrity_new_ctx, uint64_t, "");
+DECLARE_METRIC("nas_ul_sec_hdr_integrity_ciphered_new_ctx",
+               metric_nas_ul_sec_hdr_integrity_ciphered_new_ctx,
+               uint64_t,
+               "");
+DECLARE_METRIC("nas_ul_sec_hdr_service_request", metric_nas_ul_sec_hdr_service_request, uint64_t, "");
+DECLARE_METRIC("nas_ul_sec_hdr_unknown", metric_nas_ul_sec_hdr_unknown, uint64_t, "");
+DECLARE_METRIC("nas_dl_sec_hdr_plain", metric_nas_dl_sec_hdr_plain, uint64_t, "");
+DECLARE_METRIC("nas_dl_sec_hdr_integrity", metric_nas_dl_sec_hdr_integrity, uint64_t, "");
+DECLARE_METRIC("nas_dl_sec_hdr_integrity_ciphered", metric_nas_dl_sec_hdr_integrity_ciphered, uint64_t, "");
+DECLARE_METRIC("nas_dl_sec_hdr_integrity_new_ctx", metric_nas_dl_sec_hdr_integrity_new_ctx, uint64_t, "");
+DECLARE_METRIC("nas_dl_sec_hdr_integrity_ciphered_new_ctx",
+               metric_nas_dl_sec_hdr_integrity_ciphered_new_ctx,
+               uint64_t,
+               "");
+DECLARE_METRIC("nas_dl_sec_hdr_service_request", metric_nas_dl_sec_hdr_service_request, uint64_t, "");
+DECLARE_METRIC("nas_dl_sec_hdr_unknown", metric_nas_dl_sec_hdr_unknown, uint64_t, "");
+DECLARE_METRIC("nas_ul_pd_emm", metric_nas_ul_pd_emm, uint64_t, "");
+DECLARE_METRIC("nas_ul_pd_esm", metric_nas_ul_pd_esm, uint64_t, "");
+DECLARE_METRIC("nas_ul_pd_other", metric_nas_ul_pd_other, uint64_t, "");
+DECLARE_METRIC("nas_dl_pd_emm", metric_nas_dl_pd_emm, uint64_t, "");
+DECLARE_METRIC("nas_dl_pd_esm", metric_nas_dl_pd_esm, uint64_t, "");
+DECLARE_METRIC("nas_dl_pd_other", metric_nas_dl_pd_other, uint64_t, "");
+DECLARE_METRIC("nas_ul_pd_last", metric_nas_ul_pd_last, uint32_t, "");
+DECLARE_METRIC("nas_dl_pd_last", metric_nas_dl_pd_last, uint32_t, "");
+DECLARE_METRIC("nas_ul_short_pdu", metric_nas_ul_short_pdu, uint64_t, "");
+DECLARE_METRIC("nas_dl_short_pdu", metric_nas_dl_short_pdu, uint64_t, "");
+DECLARE_METRIC("nas_ul_parse_fail", metric_nas_ul_parse_fail, uint64_t, "");
+DECLARE_METRIC("nas_dl_parse_fail", metric_nas_dl_parse_fail, uint64_t, "");
+DECLARE_METRIC("nas_ul_attach", metric_nas_ul_attach, uint64_t, "");
+DECLARE_METRIC("nas_dl_attach", metric_nas_dl_attach, uint64_t, "");
+DECLARE_METRIC("nas_ul_tau", metric_nas_ul_tau, uint64_t, "");
+DECLARE_METRIC("nas_dl_tau", metric_nas_dl_tau, uint64_t, "");
+DECLARE_METRIC("nas_ul_service_request", metric_nas_ul_service_request, uint64_t, "");
+DECLARE_METRIC("nas_dl_service_request", metric_nas_dl_service_request, uint64_t, "");
+DECLARE_METRIC("nas_dl_service_reject", metric_nas_dl_service_reject, uint64_t, "");
+DECLARE_METRIC("nas_ul_identity", metric_nas_ul_identity, uint64_t, "");
+DECLARE_METRIC("nas_dl_identity", metric_nas_dl_identity, uint64_t, "");
+DECLARE_METRIC("nas_ul_authentication", metric_nas_ul_authentication, uint64_t, "");
+DECLARE_METRIC("nas_dl_authentication", metric_nas_dl_authentication, uint64_t, "");
+DECLARE_METRIC("nas_ul_security_mode", metric_nas_ul_security_mode, uint64_t, "");
+DECLARE_METRIC("nas_dl_security_mode", metric_nas_dl_security_mode, uint64_t, "");
+DECLARE_METRIC("nas_ul_detach", metric_nas_ul_detach, uint64_t, "");
+DECLARE_METRIC("nas_dl_detach", metric_nas_dl_detach, uint64_t, "");
+DECLARE_METRIC("nas_ul_emm_status", metric_nas_ul_emm_status, uint64_t, "");
+DECLARE_METRIC("nas_dl_emm_status", metric_nas_dl_emm_status, uint64_t, "");
+DECLARE_METRIC("nas_ul_esm_information", metric_nas_ul_esm_information, uint64_t, "");
+DECLARE_METRIC("nas_dl_esm_information", metric_nas_dl_esm_information, uint64_t, "");
+DECLARE_METRIC("nas_ul_pdn_connectivity", metric_nas_ul_pdn_connectivity, uint64_t, "");
+DECLARE_METRIC("nas_dl_pdn_connectivity", metric_nas_dl_pdn_connectivity, uint64_t, "");
+DECLARE_METRIC("nas_ul_pdn_disconnect", metric_nas_ul_pdn_disconnect, uint64_t, "");
+DECLARE_METRIC("nas_dl_pdn_disconnect", metric_nas_dl_pdn_disconnect, uint64_t, "");
+DECLARE_METRIC("nas_ul_default_bearer", metric_nas_ul_default_bearer, uint64_t, "");
+DECLARE_METRIC("nas_dl_default_bearer", metric_nas_dl_default_bearer, uint64_t, "");
+DECLARE_METRIC("nas_ul_dedicated_bearer", metric_nas_ul_dedicated_bearer, uint64_t, "");
+DECLARE_METRIC("nas_dl_dedicated_bearer", metric_nas_dl_dedicated_bearer, uint64_t, "");
+DECLARE_METRIC("nas_ul_modify_bearer", metric_nas_ul_modify_bearer, uint64_t, "");
+DECLARE_METRIC("nas_dl_modify_bearer", metric_nas_dl_modify_bearer, uint64_t, "");
+DECLARE_METRIC("nas_ul_deactivate_bearer", metric_nas_ul_deactivate_bearer, uint64_t, "");
+DECLARE_METRIC("nas_dl_deactivate_bearer", metric_nas_dl_deactivate_bearer, uint64_t, "");
+DECLARE_METRIC("nas_ul_bearer_resource", metric_nas_ul_bearer_resource, uint64_t, "");
+DECLARE_METRIC("nas_dl_bearer_resource", metric_nas_dl_bearer_resource, uint64_t, "");
+DECLARE_METRIC("nas_ul_generic_transport", metric_nas_ul_generic_transport, uint64_t, "");
+DECLARE_METRIC("nas_dl_generic_transport", metric_nas_dl_generic_transport, uint64_t, "");
+DECLARE_METRIC("nas_dl_cs_service_notification", metric_nas_dl_cs_service_notification, uint64_t, "");
+DECLARE_METRIC("nas_ul_other", metric_nas_ul_other, uint64_t, "");
+DECLARE_METRIC("nas_dl_other", metric_nas_dl_other, uint64_t, "");
+DECLARE_METRIC("nas_ul_unknown", metric_nas_ul_unknown, uint64_t, "");
+DECLARE_METRIC("nas_dl_unknown", metric_nas_dl_unknown, uint64_t, "");
 DECLARE_METRIC_SET("s1ap_container",
                    mset_s1ap_container,
                    metric_s1ap_status,
@@ -219,7 +298,76 @@ DECLARE_METRIC_SET("s1ap_container",
                    metric_nas_dl_msgs,
                    metric_nas_dl_drop,
                    metric_nas_ul_bytes,
-                   metric_nas_dl_bytes);
+                   metric_nas_dl_bytes,
+                   metric_nas_ul_transport_initial_ue,
+                   metric_nas_ul_transport_ul_nas,
+                   metric_nas_dl_transport_dl_nas,
+                   metric_nas_ul_sec_hdr_plain,
+                   metric_nas_ul_sec_hdr_integrity,
+                   metric_nas_ul_sec_hdr_integrity_ciphered,
+                   metric_nas_ul_sec_hdr_integrity_new_ctx,
+                   metric_nas_ul_sec_hdr_integrity_ciphered_new_ctx,
+                   metric_nas_ul_sec_hdr_service_request,
+                   metric_nas_ul_sec_hdr_unknown,
+                   metric_nas_dl_sec_hdr_plain,
+                   metric_nas_dl_sec_hdr_integrity,
+                   metric_nas_dl_sec_hdr_integrity_ciphered,
+                   metric_nas_dl_sec_hdr_integrity_new_ctx,
+                   metric_nas_dl_sec_hdr_integrity_ciphered_new_ctx,
+                   metric_nas_dl_sec_hdr_service_request,
+                   metric_nas_dl_sec_hdr_unknown,
+                   metric_nas_ul_pd_emm,
+                   metric_nas_ul_pd_esm,
+                   metric_nas_ul_pd_other,
+                   metric_nas_dl_pd_emm,
+                   metric_nas_dl_pd_esm,
+                   metric_nas_dl_pd_other,
+                   metric_nas_ul_pd_last,
+                   metric_nas_dl_pd_last,
+                   metric_nas_ul_short_pdu,
+                   metric_nas_dl_short_pdu,
+                   metric_nas_ul_parse_fail,
+                   metric_nas_dl_parse_fail,
+                   metric_nas_ul_attach,
+                   metric_nas_dl_attach,
+                   metric_nas_ul_tau,
+                   metric_nas_dl_tau,
+                   metric_nas_ul_service_request,
+                   metric_nas_dl_service_request,
+                   metric_nas_dl_service_reject,
+                   metric_nas_ul_identity,
+                   metric_nas_dl_identity,
+                   metric_nas_ul_authentication,
+                   metric_nas_dl_authentication,
+                   metric_nas_ul_security_mode,
+                   metric_nas_dl_security_mode,
+                   metric_nas_ul_detach,
+                   metric_nas_dl_detach,
+                   metric_nas_ul_emm_status,
+                   metric_nas_dl_emm_status,
+                   metric_nas_ul_esm_information,
+                   metric_nas_dl_esm_information,
+                   metric_nas_ul_pdn_connectivity,
+                   metric_nas_dl_pdn_connectivity,
+                   metric_nas_ul_pdn_disconnect,
+                   metric_nas_dl_pdn_disconnect,
+                   metric_nas_ul_default_bearer,
+                   metric_nas_dl_default_bearer,
+                   metric_nas_ul_dedicated_bearer,
+                   metric_nas_dl_dedicated_bearer,
+                   metric_nas_ul_modify_bearer,
+                   metric_nas_dl_modify_bearer,
+                   metric_nas_ul_deactivate_bearer,
+                   metric_nas_dl_deactivate_bearer,
+                   metric_nas_ul_bearer_resource,
+                   metric_nas_dl_bearer_resource,
+                   metric_nas_ul_generic_transport,
+                   metric_nas_dl_generic_transport,
+                   metric_nas_dl_cs_service_notification,
+                   metric_nas_ul_other,
+                   metric_nas_dl_other,
+                   metric_nas_ul_unknown,
+                   metric_nas_dl_unknown);
 
 DECLARE_METRIC("rrc_total_ues", metric_rrc_total_ues, uint32_t, "");
 DECLARE_METRIC("rrc_connected_ues", metric_rrc_connected_ues, uint32_t, "");
@@ -404,6 +552,7 @@ static void fill_ue_metrics(mset_ue_container& ue, const enb_metrics_t& m, unsig
   ue.write<metric_ul_phr>(m.stack.mac.ues[i].phr);
   ue.write<metric_bsr>(m.stack.mac.ues[i].ul_buffer);
   ue.write<metric_rrc_state_str>(rrc_state_to_string(m.stack.rrc.ues[i].state));
+  ue.write<metric_rrc_state>(m.stack.rrc.ues[i].state_code);
   ue.write<metric_rrc_drb_count>(m.stack.rrc.ues[i].drb_qci_map.size());
   ue.write<metric_rrc_nof_cells>(m.stack.rrc.ues[i].nof_cells);
   ue.write<metric_rrc_is_allocated>(m.stack.rrc.ues[i].is_allocated);
@@ -434,6 +583,7 @@ static void fill_ue_metrics(mset_ue_container& ue, const enb_metrics_t& m, unsig
   ue.write<metric_rrc_rlc_rlf_timer_duration>(m.stack.rrc.ues[i].rlc_rlf_timer_duration);
   ue.write<metric_rrc_last_ul_msg_bytes>(m.stack.rrc.ues[i].last_ul_msg_bytes);
   ue.write<metric_rrc_eutra_capabilities_unpacked>(m.stack.rrc.ues[i].eutra_capabilities_unpacked);
+  ue.write<metric_rrc_release_cause>(m.stack.rrc.ues[i].rrc_release_cause);
   ue.write<metric_rrc_con_req_rx>(m.stack.rrc.ues[i].rrc_con_req_rx);
   ue.write<metric_rrc_con_setup_tx>(m.stack.rrc.ues[i].rrc_con_setup_tx);
   ue.write<metric_rrc_con_setup_complete_rx>(m.stack.rrc.ues[i].rrc_con_setup_complete_rx);
@@ -557,6 +707,77 @@ void metrics_json::set_metrics(const enb_metrics_t& m, const uint32_t period_use
   s1ap.write<metric_nas_dl_drop>(m.stack.s1ap.nas_dl_drop);
   s1ap.write<metric_nas_ul_bytes>(m.stack.s1ap.nas_ul_bytes);
   s1ap.write<metric_nas_dl_bytes>(m.stack.s1ap.nas_dl_bytes);
+  s1ap.write<metric_nas_ul_transport_initial_ue>(m.stack.s1ap.nas_ul_transport_initial_ue);
+  s1ap.write<metric_nas_ul_transport_ul_nas>(m.stack.s1ap.nas_ul_transport_ul_nas);
+  s1ap.write<metric_nas_dl_transport_dl_nas>(m.stack.s1ap.nas_dl_transport_dl_nas);
+  s1ap.write<metric_nas_ul_sec_hdr_plain>(m.stack.s1ap.nas_ul_sec_hdr_plain);
+  s1ap.write<metric_nas_ul_sec_hdr_integrity>(m.stack.s1ap.nas_ul_sec_hdr_integrity);
+  s1ap.write<metric_nas_ul_sec_hdr_integrity_ciphered>(m.stack.s1ap.nas_ul_sec_hdr_integrity_ciphered);
+  s1ap.write<metric_nas_ul_sec_hdr_integrity_new_ctx>(m.stack.s1ap.nas_ul_sec_hdr_integrity_new_ctx);
+  s1ap.write<metric_nas_ul_sec_hdr_integrity_ciphered_new_ctx>(
+      m.stack.s1ap.nas_ul_sec_hdr_integrity_ciphered_new_ctx);
+  s1ap.write<metric_nas_ul_sec_hdr_service_request>(m.stack.s1ap.nas_ul_sec_hdr_service_request);
+  s1ap.write<metric_nas_ul_sec_hdr_unknown>(m.stack.s1ap.nas_ul_sec_hdr_unknown);
+  s1ap.write<metric_nas_dl_sec_hdr_plain>(m.stack.s1ap.nas_dl_sec_hdr_plain);
+  s1ap.write<metric_nas_dl_sec_hdr_integrity>(m.stack.s1ap.nas_dl_sec_hdr_integrity);
+  s1ap.write<metric_nas_dl_sec_hdr_integrity_ciphered>(m.stack.s1ap.nas_dl_sec_hdr_integrity_ciphered);
+  s1ap.write<metric_nas_dl_sec_hdr_integrity_new_ctx>(m.stack.s1ap.nas_dl_sec_hdr_integrity_new_ctx);
+  s1ap.write<metric_nas_dl_sec_hdr_integrity_ciphered_new_ctx>(
+      m.stack.s1ap.nas_dl_sec_hdr_integrity_ciphered_new_ctx);
+  s1ap.write<metric_nas_dl_sec_hdr_service_request>(m.stack.s1ap.nas_dl_sec_hdr_service_request);
+  s1ap.write<metric_nas_dl_sec_hdr_unknown>(m.stack.s1ap.nas_dl_sec_hdr_unknown);
+  s1ap.write<metric_nas_ul_pd_emm>(m.stack.s1ap.nas_ul_pd_emm);
+  s1ap.write<metric_nas_ul_pd_esm>(m.stack.s1ap.nas_ul_pd_esm);
+  s1ap.write<metric_nas_ul_pd_other>(m.stack.s1ap.nas_ul_pd_other);
+  s1ap.write<metric_nas_dl_pd_emm>(m.stack.s1ap.nas_dl_pd_emm);
+  s1ap.write<metric_nas_dl_pd_esm>(m.stack.s1ap.nas_dl_pd_esm);
+  s1ap.write<metric_nas_dl_pd_other>(m.stack.s1ap.nas_dl_pd_other);
+  s1ap.write<metric_nas_ul_pd_last>(m.stack.s1ap.nas_ul_pd_last);
+  s1ap.write<metric_nas_dl_pd_last>(m.stack.s1ap.nas_dl_pd_last);
+  s1ap.write<metric_nas_ul_short_pdu>(m.stack.s1ap.nas_ul_short_pdu);
+  s1ap.write<metric_nas_dl_short_pdu>(m.stack.s1ap.nas_dl_short_pdu);
+  s1ap.write<metric_nas_ul_parse_fail>(m.stack.s1ap.nas_ul_parse_fail);
+  s1ap.write<metric_nas_dl_parse_fail>(m.stack.s1ap.nas_dl_parse_fail);
+  s1ap.write<metric_nas_ul_attach>(m.stack.s1ap.nas_ul_attach);
+  s1ap.write<metric_nas_dl_attach>(m.stack.s1ap.nas_dl_attach);
+  s1ap.write<metric_nas_ul_tau>(m.stack.s1ap.nas_ul_tau);
+  s1ap.write<metric_nas_dl_tau>(m.stack.s1ap.nas_dl_tau);
+  s1ap.write<metric_nas_ul_service_request>(m.stack.s1ap.nas_ul_service_request);
+  s1ap.write<metric_nas_dl_service_request>(m.stack.s1ap.nas_dl_service_request);
+  s1ap.write<metric_nas_dl_service_reject>(m.stack.s1ap.nas_dl_service_reject);
+  s1ap.write<metric_nas_ul_identity>(m.stack.s1ap.nas_ul_identity);
+  s1ap.write<metric_nas_dl_identity>(m.stack.s1ap.nas_dl_identity);
+  s1ap.write<metric_nas_ul_authentication>(m.stack.s1ap.nas_ul_authentication);
+  s1ap.write<metric_nas_dl_authentication>(m.stack.s1ap.nas_dl_authentication);
+  s1ap.write<metric_nas_ul_security_mode>(m.stack.s1ap.nas_ul_security_mode);
+  s1ap.write<metric_nas_dl_security_mode>(m.stack.s1ap.nas_dl_security_mode);
+  s1ap.write<metric_nas_ul_detach>(m.stack.s1ap.nas_ul_detach);
+  s1ap.write<metric_nas_dl_detach>(m.stack.s1ap.nas_dl_detach);
+  s1ap.write<metric_nas_ul_emm_status>(m.stack.s1ap.nas_ul_emm_status);
+  s1ap.write<metric_nas_dl_emm_status>(m.stack.s1ap.nas_dl_emm_status);
+  s1ap.write<metric_nas_ul_esm_information>(m.stack.s1ap.nas_ul_esm_information);
+  s1ap.write<metric_nas_dl_esm_information>(m.stack.s1ap.nas_dl_esm_information);
+  s1ap.write<metric_nas_ul_pdn_connectivity>(m.stack.s1ap.nas_ul_pdn_connectivity);
+  s1ap.write<metric_nas_dl_pdn_connectivity>(m.stack.s1ap.nas_dl_pdn_connectivity);
+  s1ap.write<metric_nas_ul_pdn_disconnect>(m.stack.s1ap.nas_ul_pdn_disconnect);
+  s1ap.write<metric_nas_dl_pdn_disconnect>(m.stack.s1ap.nas_dl_pdn_disconnect);
+  s1ap.write<metric_nas_ul_default_bearer>(m.stack.s1ap.nas_ul_default_bearer);
+  s1ap.write<metric_nas_dl_default_bearer>(m.stack.s1ap.nas_dl_default_bearer);
+  s1ap.write<metric_nas_ul_dedicated_bearer>(m.stack.s1ap.nas_ul_dedicated_bearer);
+  s1ap.write<metric_nas_dl_dedicated_bearer>(m.stack.s1ap.nas_dl_dedicated_bearer);
+  s1ap.write<metric_nas_ul_modify_bearer>(m.stack.s1ap.nas_ul_modify_bearer);
+  s1ap.write<metric_nas_dl_modify_bearer>(m.stack.s1ap.nas_dl_modify_bearer);
+  s1ap.write<metric_nas_ul_deactivate_bearer>(m.stack.s1ap.nas_ul_deactivate_bearer);
+  s1ap.write<metric_nas_dl_deactivate_bearer>(m.stack.s1ap.nas_dl_deactivate_bearer);
+  s1ap.write<metric_nas_ul_bearer_resource>(m.stack.s1ap.nas_ul_bearer_resource);
+  s1ap.write<metric_nas_dl_bearer_resource>(m.stack.s1ap.nas_dl_bearer_resource);
+  s1ap.write<metric_nas_ul_generic_transport>(m.stack.s1ap.nas_ul_generic_transport);
+  s1ap.write<metric_nas_dl_generic_transport>(m.stack.s1ap.nas_dl_generic_transport);
+  s1ap.write<metric_nas_dl_cs_service_notification>(m.stack.s1ap.nas_dl_cs_service_notification);
+  s1ap.write<metric_nas_ul_other>(m.stack.s1ap.nas_ul_other);
+  s1ap.write<metric_nas_dl_other>(m.stack.s1ap.nas_dl_other);
+  s1ap.write<metric_nas_ul_unknown>(m.stack.s1ap.nas_ul_unknown);
+  s1ap.write<metric_nas_dl_unknown>(m.stack.s1ap.nas_dl_unknown);
 
   // RRC aggregate metrics.
   uint32_t rrc_state_counts[srsenb::RRC_STATE_N_ITEMS] = {};

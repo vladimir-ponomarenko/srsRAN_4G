@@ -111,6 +111,7 @@ rrc_state_t rrc::ue::get_state()
 void rrc::ue::get_metrics(rrc_ue_metrics_t& ue_metrics) const
 {
   ue_metrics.state      = state;
+  ue_metrics.state_code = static_cast<uint32_t>(state);
   const auto& drb_list  = bearer_list.get_established_drbs();
   const auto& erab_list = bearer_list.get_erabs();
   ue_metrics.drb_qci_map.reserve(drb_list.size());
@@ -150,6 +151,7 @@ void rrc::ue::get_metrics(rrc_ue_metrics_t& ue_metrics) const
   ue_metrics.rlc_rlf_timer_duration    = rlc_rlf_timer.duration();
   ue_metrics.last_ul_msg_bytes         = last_ul_msg ? last_ul_msg->N_bytes : 0;
   ue_metrics.eutra_capabilities_unpacked = eutra_capabilities_unpacked;
+  ue_metrics.rrc_release_cause         = last_release_cause.to_string();
   ue_metrics.rrc_con_req_rx            = rrc_con_req_rx;
   ue_metrics.rrc_con_setup_tx          = rrc_con_setup_tx;
   ue_metrics.rrc_con_setup_complete_rx = rrc_con_setup_complete_rx;
@@ -1233,6 +1235,7 @@ void rrc::ue::send_connection_release()
   rrc_release.rrc_transaction_id     = (uint8_t)((transaction_id++) % 4);
   rrc_conn_release_r8_ies_s& rel_ies = rrc_release.crit_exts.set_c1().set_rrc_conn_release_r8();
   rel_ies.release_cause              = release_cause_e::other;
+  last_release_cause                 = rel_ies.release_cause;
   if (is_csfb) {
     if (parent->sib7.carrier_freqs_info_list.size() > 0) {
       rel_ies.redirected_carrier_info_present = true;
