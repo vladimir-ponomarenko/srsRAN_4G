@@ -35,7 +35,9 @@ namespace srsenb {
 class metrics_json : public srsran::metrics_listener<enb_metrics_t>
 {
 public:
-  metrics_json(srslog::log_channel& c, enb_metrics_interface* enb_) : log_c(c), enb(enb_) {}
+  metrics_json(srslog::log_channel& c, enb_metrics_interface* enb_, std::string enb_serial_ = "") :
+    log_c(c), enb(enb_), enb_serial(std::move(enb_serial_))
+  {}
 
   void set_metrics(const enb_metrics_t& m, const uint32_t period_usec) override;
   void stop() override {}
@@ -43,6 +45,7 @@ public:
 private:
   srslog::log_channel&   log_c;
   enb_metrics_interface* enb;
+  std::string            enb_serial;
 };
 
 } // namespace srsenb

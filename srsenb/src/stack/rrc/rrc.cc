@@ -156,6 +156,64 @@ void rrc::get_metrics(rrc_metrics_t& m)
     for (auto& ue : users) {
       ue.second->get_metrics(m.ues[count++]);
     }
+
+    m.total_ues = users.size();
+    m.connected_ues = 0;
+    m.rrc_con_req_rx = 0;
+    m.rrc_con_setup_tx = 0;
+    m.rrc_con_setup_complete_rx = 0;
+    m.rrc_con_reject_tx = 0;
+    m.rrc_con_reest_req_rx = 0;
+    m.rrc_con_reest_tx = 0;
+    m.rrc_con_reest_complete_rx = 0;
+    m.rrc_con_reest_reject_tx = 0;
+    m.rrc_con_reconf_tx = 0;
+    m.rrc_con_reconf_complete_rx = 0;
+    m.rrc_con_release_tx = 0;
+    m.rrc_security_mode_command_tx = 0;
+    m.rrc_security_mode_complete_rx = 0;
+    m.rrc_security_mode_failure_rx = 0;
+    m.rrc_ue_cap_enquiry_tx = 0;
+    m.rrc_ue_cap_info_rx = 0;
+    m.rrc_ue_info_req_tx = 0;
+    m.rrc_ue_info_resp_rx = 0;
+    m.rrc_max_rlc_retx = 0;
+    m.rrc_protocol_fail = 0;
+
+    for (const auto& ue_metrics : m.ues) {
+      if (ue_metrics.state == RRC_STATE_REGISTERED) {
+        ++m.connected_ues;
+      }
+      m.rrc_con_req_rx += ue_metrics.rrc_con_req_rx;
+      m.rrc_con_setup_tx += ue_metrics.rrc_con_setup_tx;
+      m.rrc_con_setup_complete_rx += ue_metrics.rrc_con_setup_complete_rx;
+      m.rrc_con_reject_tx += ue_metrics.rrc_con_reject_tx;
+      m.rrc_con_reest_req_rx += ue_metrics.rrc_con_reest_req_rx;
+      m.rrc_con_reest_tx += ue_metrics.rrc_con_reest_tx;
+      m.rrc_con_reest_complete_rx += ue_metrics.rrc_con_reest_complete_rx;
+      m.rrc_con_reest_reject_tx += ue_metrics.rrc_con_reest_reject_tx;
+      m.rrc_con_reconf_tx += ue_metrics.rrc_con_reconf_tx;
+      m.rrc_con_reconf_complete_rx += ue_metrics.rrc_con_reconf_complete_rx;
+      m.rrc_con_release_tx += ue_metrics.rrc_con_release_tx;
+      m.rrc_security_mode_command_tx += ue_metrics.rrc_security_mode_command_tx;
+      m.rrc_security_mode_complete_rx += ue_metrics.rrc_security_mode_complete_rx;
+      m.rrc_security_mode_failure_rx += ue_metrics.rrc_security_mode_failure_rx;
+      m.rrc_ue_cap_enquiry_tx += ue_metrics.rrc_ue_cap_enquiry_tx;
+      m.rrc_ue_cap_info_rx += ue_metrics.rrc_ue_cap_info_rx;
+      m.rrc_ue_info_req_tx += ue_metrics.rrc_ue_info_req_tx;
+      m.rrc_ue_info_resp_rx += ue_metrics.rrc_ue_info_resp_rx;
+      m.rrc_max_rlc_retx += ue_metrics.rrc_max_rlc_retx;
+      m.rrc_protocol_fail += ue_metrics.rrc_protocol_fail;
+    }
+
+    m.paging_requests_total = paging_requests_total;
+    m.paging_imsi = paging_imsi;
+    m.paging_tmsi = paging_tmsi;
+    m.paging_add_fail = paging_add_fail;
+    m.paging_pdu_tx = paging_pdu_tx;
+    m.paging_bytes_tx = paging_bytes_tx;
+    m.paging_identities_tx = paging_identities_tx;
+    m.pdcp_integrity_errors = pdcp_integrity_errors;
   }
 }
 
@@ -349,6 +407,7 @@ void rrc::write_pdu(uint16_t rnti, uint32_t lcid, srsran::unique_byte_buffer_t p
 
 void rrc::notify_pdcp_integrity_error(uint16_t rnti, uint32_t lcid)
 {
+  ++pdcp_integrity_errors;
   logger.warning("Received integrity protection failure indication, rnti=0x%x, lcid=%u", rnti, lcid);
   s1ap->user_release(rnti, asn1::s1ap::cause_radio_network_opts::unspecified);
 }
@@ -527,10 +586,17 @@ int rrc::modify_erab(uint16_t                                   rnti,
 
 void rrc::add_paging_id(uint32_t ueid, const asn1::s1ap::ue_paging_id_c& ue_paging_id)
 {
+  ++paging_requests_total;
   if (ue_paging_id.type().value == asn1::s1ap::ue_paging_id_c::types_opts::imsi) {
-    pending_paging->add_imsi_paging(ueid, ue_paging_id.imsi());
+    ++paging_imsi;
+    if (!pending_paging->add_imsi_paging(ueid, ue_paging_id.imsi())) {
+      ++paging_add_fail;
+    }
   } else {
-    pending_paging->add_tmsi_paging(ueid, ue_paging_id.s_tmsi().mmec[0], ue_paging_id.s_tmsi().m_tmsi);
+    ++paging_tmsi;
+    if (!pending_paging->add_tmsi_paging(ueid, ue_paging_id.s_tmsi().mmec[0], ue_paging_id.s_tmsi().m_tmsi)) {
+      ++paging_add_fail;
+    }
   }
 }
 
@@ -555,6 +621,9 @@ void rrc::read_pdu_pcch(uint32_t tti_tx_dl, uint8_t* payload, uint32_t buffer_si
                   msg.msg.c1().paging().paging_record_list.size(),
                   pdu.size());
       log_broadcast_rrc_message(SRSRAN_PRNTI, pdu, msg, msg.msg.c1().type().to_string());
+      ++paging_pdu_tx;
+      paging_bytes_tx += pdu.size();
+      paging_identities_tx += msg.msg.c1().paging().paging_record_list.size();
     }
     return true;
   };

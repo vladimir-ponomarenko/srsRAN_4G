@@ -224,6 +224,28 @@ private:
   // controllers
   mac_controller mac_ctrl;
 
+  // metrics counters
+  uint32_t rrc_con_req_rx            = 0;
+  uint32_t rrc_con_setup_tx          = 0;
+  uint32_t rrc_con_setup_complete_rx = 0;
+  uint32_t rrc_con_reject_tx         = 0;
+  uint32_t rrc_con_reest_req_rx      = 0;
+  uint32_t rrc_con_reest_tx          = 0;
+  uint32_t rrc_con_reest_complete_rx = 0;
+  uint32_t rrc_con_reest_reject_tx   = 0;
+  uint32_t rrc_con_reconf_tx         = 0;
+  uint32_t rrc_con_reconf_complete_rx = 0;
+  uint32_t rrc_con_release_tx         = 0;
+  uint32_t rrc_security_mode_command_tx = 0;
+  uint32_t rrc_security_mode_complete_rx = 0;
+  uint32_t rrc_security_mode_failure_rx = 0;
+  uint32_t rrc_ue_cap_enquiry_tx = 0;
+  uint32_t rrc_ue_cap_info_rx    = 0;
+  uint32_t rrc_ue_info_req_tx    = 0;
+  uint32_t rrc_ue_info_resp_rx   = 0;
+  uint32_t rrc_max_rlc_retx      = 0;
+  uint32_t rrc_protocol_fail     = 0;
+
   /// Helper to fill cell_ded_list with SCells provided in the eNB config
   void update_scells();
 

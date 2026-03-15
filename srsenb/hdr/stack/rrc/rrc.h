@@ -191,6 +191,14 @@ private:
   std::unique_ptr<freq_res_common_list>    cell_res_list;
   std::map<uint16_t, unique_rnti_ptr<ue> > users; // NOTE: has to have fixed addr
   std::unique_ptr<paging_manager>          pending_paging;
+  uint32_t                                 paging_requests_total = 0;
+  uint32_t                                 paging_imsi = 0;
+  uint32_t                                 paging_tmsi = 0;
+  uint32_t                                 paging_add_fail = 0;
+  uint32_t                                 paging_pdu_tx = 0;
+  uint32_t                                 paging_bytes_tx = 0;
+  uint32_t                                 paging_identities_tx = 0;
+  uint32_t                                 pdcp_integrity_errors = 0;
 
   void     process_release_complete(uint16_t rnti);
   void     rem_user(uint16_t rnti);

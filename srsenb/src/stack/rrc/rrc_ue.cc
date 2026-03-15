@@ -120,6 +120,56 @@ void rrc::ue::get_metrics(rrc_ue_metrics_t& ue_metrics) const
       ue_metrics.drb_qci_map.push_back(std::make_pair(drb_list[i].lc_ch_id, erab_it->second.qos_params.qci));
     }
   }
+
+  ue_metrics.nof_cells                 = ue_cell_list.nof_cells();
+  ue_metrics.is_allocated              = ue_cell_list.is_allocated();
+  ue_metrics.sr_res_present            = (ue_cell_list.get_sr_res() != nullptr);
+  ue_metrics.n_pucch_cs_present        = ue_cell_list.is_pucch_cs_allocated();
+  ue_metrics.is_csfb                   = is_csfb;
+  ue_metrics.connect_notified          = connect_notified;
+  ue_metrics.rlf_cnt                   = rlf_cnt;
+  ue_metrics.rlf_info_pending          = rlf_info_pending;
+  ue_metrics.consecutive_kos_dl        = consecutive_kos_dl;
+  ue_metrics.consecutive_kos_ul        = consecutive_kos_ul;
+  ue_metrics.has_tmsi                  = has_tmsi;
+  ue_metrics.m_tmsi                    = m_tmsi;
+  ue_metrics.mmec                      = mmec;
+  ue_metrics.establishment_cause       = establishment_cause.value;
+  ue_metrics.transaction_id            = transaction_id;
+  ue_metrics.activity_timer_running    = activity_timer.is_running();
+  ue_metrics.activity_timer_elapsed    = activity_timer.time_elapsed();
+  ue_metrics.activity_timer_duration   = activity_timer.duration();
+  ue_metrics.phy_dl_rlf_timer_running  = phy_dl_rlf_timer.is_running();
+  ue_metrics.phy_dl_rlf_timer_elapsed  = phy_dl_rlf_timer.time_elapsed();
+  ue_metrics.phy_dl_rlf_timer_duration = phy_dl_rlf_timer.duration();
+  ue_metrics.phy_ul_rlf_timer_running  = phy_ul_rlf_timer.is_running();
+  ue_metrics.phy_ul_rlf_timer_elapsed  = phy_ul_rlf_timer.time_elapsed();
+  ue_metrics.phy_ul_rlf_timer_duration = phy_ul_rlf_timer.duration();
+  ue_metrics.rlc_rlf_timer_running     = rlc_rlf_timer.is_running();
+  ue_metrics.rlc_rlf_timer_elapsed     = rlc_rlf_timer.time_elapsed();
+  ue_metrics.rlc_rlf_timer_duration    = rlc_rlf_timer.duration();
+  ue_metrics.last_ul_msg_bytes         = last_ul_msg ? last_ul_msg->N_bytes : 0;
+  ue_metrics.eutra_capabilities_unpacked = eutra_capabilities_unpacked;
+  ue_metrics.rrc_con_req_rx            = rrc_con_req_rx;
+  ue_metrics.rrc_con_setup_tx          = rrc_con_setup_tx;
+  ue_metrics.rrc_con_setup_complete_rx = rrc_con_setup_complete_rx;
+  ue_metrics.rrc_con_reject_tx         = rrc_con_reject_tx;
+  ue_metrics.rrc_con_reest_req_rx      = rrc_con_reest_req_rx;
+  ue_metrics.rrc_con_reest_tx          = rrc_con_reest_tx;
+  ue_metrics.rrc_con_reest_complete_rx = rrc_con_reest_complete_rx;
+  ue_metrics.rrc_con_reest_reject_tx   = rrc_con_reest_reject_tx;
+  ue_metrics.rrc_con_reconf_tx         = rrc_con_reconf_tx;
+  ue_metrics.rrc_con_reconf_complete_rx = rrc_con_reconf_complete_rx;
+  ue_metrics.rrc_con_release_tx         = rrc_con_release_tx;
+  ue_metrics.rrc_security_mode_command_tx = rrc_security_mode_command_tx;
+  ue_metrics.rrc_security_mode_complete_rx = rrc_security_mode_complete_rx;
+  ue_metrics.rrc_security_mode_failure_rx = rrc_security_mode_failure_rx;
+  ue_metrics.rrc_ue_cap_enquiry_tx     = rrc_ue_cap_enquiry_tx;
+  ue_metrics.rrc_ue_cap_info_rx        = rrc_ue_cap_info_rx;
+  ue_metrics.rrc_ue_info_req_tx        = rrc_ue_info_req_tx;
+  ue_metrics.rrc_ue_info_resp_rx       = rrc_ue_info_resp_rx;
+  ue_metrics.rrc_max_rlc_retx          = rrc_max_rlc_retx;
+  ue_metrics.rrc_protocol_fail         = rrc_protocol_fail;
 }
 
 void rrc::ue::set_activity(bool enabled)
@@ -273,6 +323,7 @@ void rrc::ue::rlf_timer_expired(uint32_t timeout_id)
 
 void rrc::ue::max_rlc_retx_reached()
 {
+  ++rrc_max_rlc_retx;
   parent->logger.info("Max RLC retx reached for rnti=0x%x", rnti);
 
   // Turn off scheduling but give UE chance to start re-establishment
@@ -282,6 +333,7 @@ void rrc::ue::max_rlc_retx_reached()
 
 void rrc::ue::protocol_failure()
 {
+  ++rrc_protocol_fail;
   parent->logger.info("RLC protocol failure for rnti=0x%x", rnti);
 
   // Release UE immediately with appropiate cause
@@ -445,6 +497,7 @@ std::string rrc::ue::to_string(const activity_timeout_type_t& type)
  */
 void rrc::ue::handle_rrc_con_req(rrc_conn_request_s* msg)
 {
+  ++rrc_con_req_rx;
   // Log event.
   asn1::json_writer json_writer;
   msg->to_json(json_writer);
@@ -495,6 +548,7 @@ void rrc::ue::handle_rrc_con_req(rrc_conn_request_s* msg)
 
 void rrc::ue::send_connection_setup()
 {
+  ++rrc_con_setup_tx;
   dl_ccch_msg_s dl_ccch_msg;
   dl_ccch_msg.msg.set_c1();
 
@@ -538,6 +592,7 @@ void rrc::ue::send_connection_setup()
 
 void rrc::ue::handle_rrc_con_setup_complete(rrc_conn_setup_complete_s* msg, srsran::unique_byte_buffer_t pdu)
 {
+  ++rrc_con_setup_complete_rx;
   // Log event.
   asn1::json_writer json_writer;
   msg->to_json(json_writer);
@@ -586,6 +641,7 @@ void rrc::ue::handle_rrc_con_setup_complete(rrc_conn_setup_complete_s* msg, srsr
 
 void rrc::ue::send_connection_reject(procedure_result_code cause)
 {
+  ++rrc_con_reject_tx;
   mac_ctrl.handle_con_reject();
 
   dl_ccch_msg_s dl_ccch_msg;
@@ -610,6 +666,7 @@ void rrc::ue::send_connection_reject(procedure_result_code cause)
  */
 void rrc::ue::handle_rrc_con_reest_req(rrc_conn_reest_request_s* msg)
 {
+  ++rrc_con_reest_req_rx;
   // Log event.
   asn1::json_writer json_writer;
   msg->to_json(json_writer);
@@ -782,6 +839,7 @@ void rrc::ue::handle_rrc_con_reest_req(rrc_conn_reest_request_s* msg)
 
 void rrc::ue::send_connection_reest(uint8_t ncc)
 {
+  ++rrc_con_reest_tx;
   dl_ccch_msg_s dl_ccch_msg;
   auto&         reest               = dl_ccch_msg.msg.set_c1().set_rrc_conn_reest();
   reest.rrc_transaction_id          = (uint8_t)((transaction_id++) % 4);
@@ -826,6 +884,7 @@ void rrc::ue::send_connection_reest(uint8_t ncc)
 
 void rrc::ue::handle_rrc_con_reest_complete(rrc_conn_reest_complete_s* msg, srsran::unique_byte_buffer_t pdu)
 {
+  ++rrc_con_reest_complete_rx;
   // Log event.
   asn1::json_writer json_writer;
   msg->to_json(json_writer);
@@ -862,6 +921,7 @@ void rrc::ue::handle_rrc_con_reest_complete(rrc_conn_reest_complete_s* msg, srsr
 
 void rrc::ue::send_connection_reest_rej(procedure_result_code cause)
 {
+  ++rrc_con_reest_reject_tx;
   mac_ctrl.handle_con_reject();
 
   dl_ccch_msg_s dl_ccch_msg;
@@ -888,6 +948,7 @@ void rrc::ue::send_connection_reconf(srsran::unique_byte_buffer_t pdu,
                                      bool                         phy_cfg_updated,
                                      srsran::const_byte_span      nas_pdu)
 {
+  ++rrc_con_reconf_tx;
   parent->logger.debug("RRC state %d", state);
 
   update_scells();
@@ -967,6 +1028,7 @@ void rrc::ue::send_connection_reconf(srsran::unique_byte_buffer_t pdu,
 
 void rrc::ue::handle_rrc_reconf_complete(rrc_conn_recfg_complete_s* msg, srsran::unique_byte_buffer_t pdu)
 {
+  ++rrc_con_reconf_complete_rx;
   // Inform PHY about the configuration completion
   parent->phy->complete_config(rnti);
 
@@ -1008,6 +1070,7 @@ void rrc::ue::handle_rrc_reconf_complete(rrc_conn_recfg_complete_s* msg, srsran:
 
 void rrc::ue::send_ue_info_req()
 {
+  ++rrc_ue_info_req_tx;
   dl_dcch_msg_s msg;
   auto&         req_r9      = msg.msg.set_c1().set_ue_info_request_r9();
   req_r9.rrc_transaction_id = (uint8_t)((transaction_id++) % 4);
@@ -1021,6 +1084,7 @@ void rrc::ue::send_ue_info_req()
 
 void rrc::ue::handle_ue_info_resp(const asn1::rrc::ue_info_resp_r9_s& msg, srsran::unique_byte_buffer_t pdu)
 {
+  ++rrc_ue_info_resp_rx;
   auto& resp_r9 = msg.crit_exts.c1().ue_info_resp_r9();
   if (resp_r9.rlf_report_r9_present) {
     asn1::json_writer json_writer;
@@ -1040,6 +1104,7 @@ void rrc::ue::handle_ue_info_resp(const asn1::rrc::ue_info_resp_r9_s& msg, srsra
  */
 void rrc::ue::send_security_mode_command()
 {
+  ++rrc_security_mode_command_tx;
   // Setup SRB1 security/integrity. Encryption is set on completion
   parent->pdcp->config_security(rnti, srb_to_lcid(lte_srb::srb1), ue_security_cfg.get_as_sec_cfg());
   parent->pdcp->enable_integrity(rnti, srb_to_lcid(lte_srb::srb1));
@@ -1056,6 +1121,7 @@ void rrc::ue::send_security_mode_command()
 
 void rrc::ue::handle_security_mode_complete(security_mode_complete_s* msg)
 {
+  ++rrc_security_mode_complete_rx;
   parent->logger.info("SecurityModeComplete transaction ID: %d", msg->rrc_transaction_id);
 
   parent->pdcp->enable_encryption(rnti, srb_to_lcid(lte_srb::srb1));
@@ -1063,6 +1129,7 @@ void rrc::ue::handle_security_mode_complete(security_mode_complete_s* msg)
 
 void rrc::ue::handle_security_mode_failure(security_mode_fail_s* msg)
 {
+  ++rrc_security_mode_failure_rx;
   parent->logger.info("SecurityModeFailure transaction ID: %d", msg->rrc_transaction_id);
 }
 
@@ -1071,6 +1138,7 @@ void rrc::ue::handle_security_mode_failure(security_mode_fail_s* msg)
  */
 void rrc::ue::send_ue_cap_enquiry(const std::vector<asn1::rrc::rat_type_opts::options>& rats)
 {
+  ++rrc_ue_cap_enquiry_tx;
   dl_dcch_msg_s dl_dcch_msg;
   dl_dcch_msg.msg.set_c1().set_ue_cap_enquiry().crit_exts.set_c1().set_ue_cap_enquiry_r8();
 
@@ -1092,6 +1160,7 @@ void rrc::ue::send_ue_cap_enquiry(const std::vector<asn1::rrc::rat_type_opts::op
  */
 int rrc::ue::handle_ue_cap_info(ue_cap_info_s* msg)
 {
+  ++rrc_ue_cap_info_rx;
   parent->logger.info("UECapabilityInformation transaction ID: %d", msg->rrc_transaction_id);
   ue_cap_info_r8_ies_s* msg_r8 = &msg->crit_exts.c1().ue_cap_info_r8();
   const ue_cell_ded*    pcell  = ue_cell_list.get_ue_cc_idx(UE_PCELL_CC_IDX);
@@ -1158,6 +1227,7 @@ int rrc::ue::handle_ue_cap_info(ue_cap_info_s* msg)
  */
 void rrc::ue::send_connection_release()
 {
+  ++rrc_con_release_tx;
   dl_dcch_msg_s dl_dcch_msg;
   auto&         rrc_release          = dl_dcch_msg.msg.set_c1().set_rrc_conn_release();
   rrc_release.rrc_transaction_id     = (uint8_t)((transaction_id++) % 4);

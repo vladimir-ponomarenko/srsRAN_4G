@@ -266,6 +266,7 @@ void parse_args(all_args_t* args, int argc, char* argv[])
     ("expert.report_json_asn1_oct",  bpo::value<bool>(&args->general.report_json_asn1_oct)->default_value(false), "Prints ASN1 messages encoded as an octet string instead of plain text in the JSON report file.")
     ("expert.report_json_uds_enable",  bpo::value<bool>(&args->general.report_json_uds_enable)->default_value(false), "Write eNB metrics to JSON over UDS (default disabled).")
     ("expert.report_json_uds_path", bpo::value<string>(&args->general.report_json_uds_path)->default_value("/tmp/enb_metrics.uds"), "Unix Domain Socket path for JSON metrics.")
+    ("expert.enb_serial", bpo::value<string>(&args->general.enb_serial)->default_value(""), "eNB serial number to include in JSON metrics.")
     ("expert.alarms_log_enable",  bpo::value<bool>(&args->general.alarms_log_enable)->default_value(false), "Enable Alarms logging (default diabled).")
     ("expert.alarms_filename", bpo::value<string>(&args->general.alarms_filename)->default_value("/tmp/enb_alarms.log"), "Alarms logging filename (default /tmp/alarms.log).")
     ("expert.tracing_enable",  bpo::value<bool>(&args->general.tracing_enable)->default_value(false), "Events tracing.")
@@ -714,14 +715,14 @@ int main(int argc, char* argv[])
     metricshub.add_listener(&metrics_file);
   }
 
-  srsenb::metrics_json json_metrics(json_channel, enb.get());
+  srsenb::metrics_json json_metrics(json_channel, enb.get(), args.general.enb_serial);
   if (args.general.report_json_enable) {
     metricshub.add_listener(&json_metrics);
   }
 
   std::unique_ptr<srsenb::metrics_json> json_uds_metrics;
   if (json_uds_channel) {
-    json_uds_metrics.reset(new srsenb::metrics_json(*json_uds_channel, enb.get()));
+    json_uds_metrics.reset(new srsenb::metrics_json(*json_uds_channel, enb.get(), args.general.enb_serial));
     metricshub.add_listener(json_uds_metrics.get());
   }
   srsenb::metrics_e2 e2_metrics(enb.get());

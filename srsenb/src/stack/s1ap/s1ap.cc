@@ -378,13 +378,18 @@ void s1ap::get_metrics(s1ap_metrics_t& m)
 {
   if (!running) {
     m.status = S1AP_ERROR;
-    return;
-  }
-  if (mme_connected) {
+  } else if (mme_connected) {
     m.status = S1AP_READY;
   } else {
     m.status = S1AP_ATTACHING;
   }
+
+  m.nas_ul_msgs  = nas_ul_msgs.load(std::memory_order_relaxed);
+  m.nas_ul_fail  = nas_ul_fail.load(std::memory_order_relaxed);
+  m.nas_dl_msgs  = nas_dl_msgs.load(std::memory_order_relaxed);
+  m.nas_dl_drop  = nas_dl_drop.load(std::memory_order_relaxed);
+  m.nas_ul_bytes = nas_ul_bytes.load(std::memory_order_relaxed);
+  m.nas_dl_bytes = nas_dl_bytes.load(std::memory_order_relaxed);
 }
 
 // Generate common S1AP protocol IEs from config args
@@ -794,6 +799,7 @@ bool s1ap::handle_dlnastransport(const dl_nas_transport_s& msg)
   }
   ue* u = handle_s1apmsg_ue_id(msg->enb_ue_s1ap_id.value.value, msg->mme_ue_s1ap_id.value.value);
   if (u == nullptr) {
+    nas_dl_drop.fetch_add(1, std::memory_order_relaxed);
     return false;
   }
 
@@ -807,10 +813,13 @@ bool s1ap::handle_dlnastransport(const dl_nas_transport_s& msg)
   srsran::unique_byte_buffer_t pdu = srsran::make_byte_buffer();
   if (pdu == nullptr) {
     logger.error("Fatal Error: Couldn't allocate buffer in s1ap::run_thread().");
+    nas_dl_drop.fetch_add(1, std::memory_order_relaxed);
     return false;
   }
   memcpy(pdu->msg, msg->nas_pdu.value.data(), msg->nas_pdu.value.size());
   pdu->N_bytes = msg->nas_pdu.value.size();
+  nas_dl_msgs.fetch_add(1, std::memory_order_relaxed);
+  nas_dl_bytes.fetch_add(pdu->N_bytes, std::memory_order_relaxed);
   rrc->write_dl_info(u->ctxt.rnti, std::move(pdu));
   return true;
 }
@@ -1491,13 +1500,22 @@ bool s1ap::ue::send_initialuemessage(asn1::s1ap::rrc_establishment_cause_e cause
   // RRC Establishment Cause
   container->rrc_establishment_cause.value = cause;
 
-  return s1ap_ptr->sctp_send_s1ap_pdu(tx_pdu, ctxt.rnti, "InitialUEMessage");
+  const uint32_t nas_size = pdu->N_bytes;
+  const bool     ok       = s1ap_ptr->sctp_send_s1ap_pdu(tx_pdu, ctxt.rnti, "InitialUEMessage");
+  if (ok) {
+    s1ap_ptr->nas_ul_msgs.fetch_add(1, std::memory_order_relaxed);
+    s1ap_ptr->nas_ul_bytes.fetch_add(nas_size, std::memory_order_relaxed);
+  } else {
+    s1ap_ptr->nas_ul_fail.fetch_add(1, std::memory_order_relaxed);
+  }
+  return ok;
 }
 
 bool s1ap::ue::send_ulnastransport(srsran::unique_byte_buffer_t pdu)
 {
   if (not ctxt.mme_ue_s1ap_id.has_value()) {
     logger.error("Trying to send UL NAS Transport message for rnti=0x%x without MME-S1AP-UE-ID", ctxt.rnti);
+    s1ap_ptr->nas_ul_fail.fetch_add(1, std::memory_order_relaxed);
     return false;
   }
 
@@ -1517,7 +1535,15 @@ bool s1ap::ue::send_ulnastransport(srsran::unique_byte_buffer_t pdu)
   // TAI
   container->tai.value = s1ap_ptr->tai;
 
-  return s1ap_ptr->sctp_send_s1ap_pdu(tx_pdu, ctxt.rnti, "UplinkNASTransport");
+  const uint32_t nas_size = pdu->N_bytes;
+  const bool     ok       = s1ap_ptr->sctp_send_s1ap_pdu(tx_pdu, ctxt.rnti, "UplinkNASTransport");
+  if (ok) {
+    s1ap_ptr->nas_ul_msgs.fetch_add(1, std::memory_order_relaxed);
+    s1ap_ptr->nas_ul_bytes.fetch_add(nas_size, std::memory_order_relaxed);
+  } else {
+    s1ap_ptr->nas_ul_fail.fetch_add(1, std::memory_order_relaxed);
+  }
+  return ok;
 }
 
 bool s1ap::ue::send_uectxtreleaserequest(const cause_c& cause)

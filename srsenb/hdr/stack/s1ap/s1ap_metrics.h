@@ -22,6 +22,8 @@
 #ifndef SRSENB_S1AP_METRICS_H
 #define SRSENB_S1AP_METRICS_H
 
+#include <cstdint>
+
 namespace srsenb {
 
 typedef enum {
@@ -32,6 +34,12 @@ typedef enum {
 
 struct s1ap_metrics_t {
   S1AP_STATUS_ENUM status;
+  uint64_t         nas_ul_msgs;
+  uint64_t         nas_ul_fail;
+  uint64_t         nas_dl_msgs;
+  uint64_t         nas_dl_drop;
+  uint64_t         nas_ul_bytes;
+  uint64_t         nas_dl_bytes;
 };
 
 } // namespace srsenb

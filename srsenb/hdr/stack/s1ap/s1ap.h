@@ -22,6 +22,7 @@
 #ifndef SRSENB_S1AP_H
 #define SRSENB_S1AP_H
 
+#include <atomic>
 #include <map>
 
 #include "srsenb/hdr/common/common_enb.h"
@@ -153,6 +154,13 @@ private:
   srsran::s1ap_pcap* pcap = nullptr;
 
   asn1::s1ap::s1_setup_resp_s s1setupresponse;
+
+  std::atomic<uint64_t> nas_ul_msgs{0};
+  std::atomic<uint64_t> nas_ul_fail{0};
+  std::atomic<uint64_t> nas_dl_msgs{0};
+  std::atomic<uint64_t> nas_dl_drop{0};
+  std::atomic<uint64_t> nas_ul_bytes{0};
+  std::atomic<uint64_t> nas_dl_bytes{0};
 
   void build_tai_cgi();
   bool connect_mme();
