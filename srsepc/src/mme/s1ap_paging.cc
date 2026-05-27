@@ -19,6 +19,7 @@
  *
  */
 #include "srsepc/hdr/mme/s1ap_paging.h"
+#include "srsepc/hdr/metrics/epc_metrics.h"
 #include "srsepc/hdr/mme/mme.h"
 #include "srsepc/hdr/mme/s1ap.h"
 #include "srsran/common/bcd_helpers.h"
@@ -43,6 +44,7 @@ void s1ap_paging::init()
 bool s1ap_paging::send_paging(uint64_t imsi, uint16_t erab_to_setup)
 {
   m_logger.info("Preparing to Page UE -- IMSI %015" PRIu64 "", imsi);
+  epc_metrics_collector::instance().inc_paging_attempt();
 
   // Prepare reply PDU
   s1ap_pdu_t tx_pdu;

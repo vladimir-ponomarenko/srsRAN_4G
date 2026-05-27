@@ -22,6 +22,7 @@ add_subdirectory(mme)
 add_subdirectory(hss)
 add_subdirectory(spgw)
 add_subdirectory(mbms-gw)
+add_subdirectory(metrics)
 
 # Link libstdc++ and libgcc
 if(BUILD_STATIC)
@@ -38,6 +39,7 @@ add_executable(srsepc main.cc)
 target_link_libraries( srsepc  srsepc_mme
                                srsepc_hss
                                srsepc_sgw
+                               srsepc_metrics
                                s1ap_asn1
                                srsran_gtpu
                                srsran_asn1

@@ -52,6 +52,7 @@ typedef struct spgw_tunnel_ctx {
   uint64_t                                 imsi;
   in_addr_t                                ue_ipv4;
   uint8_t                                  ebi;
+  uint8_t                                  qci;
   srsran::gtp_fteid_t                      up_ctrl_fteid;
   srsran::gtp_fteid_t                      up_user_fteid;
   srsran::gtp_fteid_t                      dw_ctrl_fteid;

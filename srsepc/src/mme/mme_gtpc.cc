@@ -165,6 +165,13 @@ bool mme_gtpc::send_create_session_request(uint64_t imsi)
 
   // Bearer QoS
   cs_req->eps_bearer_context_created.ebi = 5;
+  nas* nas_ctx = m_s1ap->find_nas_ctx_from_imsi(imsi);
+  if (nas_ctx != nullptr) {
+    uint8_t qci = nas_ctx->m_esm_ctx[5].qci;
+    cs_req->eps_bearer_context_created.bearer_qos.qci = qci == 0 ? 9 : qci;
+  } else {
+    cs_req->eps_bearer_context_created.bearer_qos.qci = 9;
+  }
 
   // Check whether this UE is already registed
   std::map<uint64_t, struct gtpc_ctx>::iterator it = m_imsi_to_gtpc_ctx.find(imsi);

@@ -20,6 +20,7 @@
  */
 
 #include "srsepc/hdr/spgw/gtpc.h"
+#include "srsepc/hdr/metrics/epc_metrics.h"
 #include <algorithm>
 #include <arpa/inet.h>
 #include <cstring>
@@ -183,6 +184,7 @@ void spgw::gtpc::handle_s11_pdu(srsran::byte_buffer_t* msg)
 void spgw::gtpc::handle_create_session_request(const struct srsran::gtpc_create_session_request& cs_req)
 {
   m_logger.info("SPGW Received Create Session Request");
+  epc_metrics_collector::instance().inc_create_default_bearer_s11_attempt();
   spgw_tunnel_ctx_t* tunnel_ctx;
   int                default_bearer_id = 5;
   // Check if IMSI has active GTP-C and/or GTP-U
@@ -455,6 +457,7 @@ spgw_tunnel_ctx_t* spgw::gtpc::create_gtpc_ctx(const struct srsran::gtpc_create_
 
   tunnel_ctx->imsi = cs_req.imsi;
   tunnel_ctx->ebi  = default_bearer_id;
+  tunnel_ctx->qci  = cs_req.eps_bearer_context_created.bearer_qos.qci == 0 ? 9 : cs_req.eps_bearer_context_created.bearer_qos.qci;
 
   tunnel_ctx->up_ctrl_fteid.teid = spgw_uplink_ctrl_teid;
   tunnel_ctx->ue_ipv4            = ue_ip;
@@ -466,6 +469,7 @@ spgw_tunnel_ctx_t* spgw::gtpc::create_gtpc_ctx(const struct srsran::gtpc_create_
 
   m_teid_to_tunnel_ctx.emplace(spgw_uplink_ctrl_teid, tunnel_ctx);
   m_imsi_to_ctr_teid.emplace(cs_req.imsi, spgw_uplink_ctrl_teid);
+  epc_metrics_collector::instance().bearer_activated(tunnel_ctx->qci);
   return tunnel_ctx;
 }
 
@@ -486,6 +490,7 @@ bool spgw::gtpc::delete_gtpc_ctx(uint32_t ctrl_teid)
 
   // Remove GTP context from control TEID mapping
   m_teid_to_tunnel_ctx.erase(ctrl_teid);
+  epc_metrics_collector::instance().bearer_released(tunnel_ctx->qci);
   delete tunnel_ctx;
   return true;
 }

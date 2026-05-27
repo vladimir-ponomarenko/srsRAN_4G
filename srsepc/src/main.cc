@@ -20,6 +20,7 @@
  */
 
 #include "srsepc/hdr/hss/hss.h"
+#include "srsepc/hdr/metrics/epc_metrics.h"
 #include "srsepc/hdr/mme/mme.h"
 #include "srsepc/hdr/spgw/spgw.h"
 #include "srsran/build_info.h"
@@ -62,6 +63,7 @@ typedef struct {
   mme_args_t  mme_args;
   hss_args_t  hss_args;
   spgw_args_t spgw_args;
+  epc_metrics_args_t metrics_args;
   log_args_t  log_args;
 } all_args_t;
 
@@ -98,6 +100,10 @@ void parse_args(all_args_t* args, int argc, char* argv[])
   string   hss_auth_algo;
   string   log_filename;
   string   lac;
+  float    metrics_period_secs = 1.0f;
+  bool     report_json_uds_enable = false;
+  string   report_json_uds_path;
+  string   epc_id;
 
   // Command line only options
   bpo::options_description general("General options");
@@ -134,6 +140,11 @@ void parse_args(all_args_t* args, int argc, char* argv[])
 
     ("pcap.enable",   bpo::value<bool>(&args->mme_args.s1ap_args.pcap_enable)->default_value(false),         "Enable S1AP PCAP")
     ("pcap.filename", bpo::value<string>(&args->mme_args.s1ap_args.pcap_filename)->default_value("/tmp/epc.pcap"), "PCAP filename")
+
+    ("metrics.metrics_period_secs", bpo::value<float>(&metrics_period_secs)->default_value(1.0f), "Periodicity for EPC metrics in seconds.")
+    ("metrics.report_json_uds_enable", bpo::value<bool>(&report_json_uds_enable)->default_value(false), "Write EPC metrics to JSON over UDS.")
+    ("metrics.report_json_uds_path", bpo::value<string>(&report_json_uds_path)->default_value("/tmp/epc_metrics.uds"), "Unix Domain Socket path for EPC JSON metrics.")
+    ("metrics.epc_id", bpo::value<string>(&epc_id)->default_value("EPC"), "EPC identifier to include in JSON metrics.")
 
     ("log.nas_level",           bpo::value<string>(&args->log_args.nas_level),        "MME NAS  log level")
     ("log.nas_hex_limit",       bpo::value<int>(&args->log_args.nas_hex_limit),       "MME NAS log hex dump limit")
@@ -288,6 +299,10 @@ void parse_args(all_args_t* args, int argc, char* argv[])
   args->spgw_args.sgi_if_name             = sgi_if_name;
   args->spgw_args.max_paging_queue        = max_paging_queue;
   args->hss_args.db_file                  = hss_db_file;
+  args->metrics_args.metrics_period_secs    = metrics_period_secs;
+  args->metrics_args.report_json_uds_enable = report_json_uds_enable;
+  args->metrics_args.report_json_uds_path   = report_json_uds_path;
+  args->metrics_args.epc_id                 = epc_id;
 
   // Apply all_level to any unset layers
   if (vm.count("log.all_level")) {
@@ -445,6 +460,11 @@ int main(int argc, char* argv[])
   spgw_logger.set_level(srslog::str_to_basic_level(args.log_args.spgw_level));
   spgw_logger.set_hex_dump_max_size(args.log_args.spgw_hex_limit);
 
+  epc_metrics_reporter metrics_reporter;
+  if (!metrics_reporter.start(args.metrics_args)) {
+    srsran::console("Failed to start EPC metrics reporter. Continuing without UDS metrics.\n");
+  }
+
   hss* hss = hss::get_instance();
   if (hss->init(&args.hss_args)) {
     cout << "Error initializing HSS" << endl;
@@ -475,6 +495,7 @@ int main(int argc, char* argv[])
   spgw->cleanup();
   hss->stop();
   hss->cleanup();
+  metrics_reporter.stop();
 
   cout << std::endl << "---  exiting  ---" << endl;
   return 0;

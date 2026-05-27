@@ -21,6 +21,7 @@
 
 #include "srsepc/hdr/mme/s1ap.h"
 #include "srsepc/hdr/mme/s1ap_nas_transport.h"
+#include "srsepc/hdr/metrics/epc_metrics.h"
 #include "srsran/common/liblte_security.h"
 #include "srsran/common/security.h"
 #include <cmath>
@@ -91,16 +92,20 @@ bool nas::handle_attach_request(uint32_t                enb_ue_s1ap_id,
   hss_interface_nas*  hss  = itf.hss;
   gtpc_interface_nas* gtpc = itf.gtpc;
 
+  epc_metrics_collector::instance().inc_attach_attempt();
+
   // Get NAS Attach Request and PDN connectivity request messages
   LIBLTE_ERROR_ENUM err = liblte_mme_unpack_attach_request_msg((LIBLTE_BYTE_MSG_STRUCT*)nas_rx, &attach_req);
   if (err != LIBLTE_SUCCESS) {
     nas_logger.error("Error unpacking NAS attach request. Error: %s", liblte_error_text[err]);
+    epc_metrics_collector::instance().inc_attach_failure(0);
     return false;
   }
   // Get PDN Connectivity Request*/
   err = liblte_mme_unpack_pdn_connectivity_request_msg(&attach_req.esm_msg, &pdn_con_req);
   if (err != LIBLTE_SUCCESS) {
     nas_logger.error("Error unpacking NAS PDN Connectivity Request. Error: %s", liblte_error_text[err]);
+    epc_metrics_collector::instance().inc_attach_failure(0);
     return false;
   }
 
@@ -118,6 +123,7 @@ bool nas::handle_attach_request(uint32_t                enb_ue_s1ap_id,
     nas_logger.info("Attach request -- M-TMSI: 0x%x", m_tmsi);
   } else {
     nas_logger.error("Unhandled Mobile Id type in attach request");
+    epc_metrics_collector::instance().inc_attach_failure(0);
     return false;
   }
 
@@ -273,6 +279,7 @@ bool nas::handle_imsi_attach_request_unknown_ue(uint32_t                        
                                  nas_ctx->m_sec_ctx.xres)) {
     srsran::console("User not found. IMSI %015" PRIu64 "\n", nas_ctx->m_emm_ctx.imsi);
     nas_logger.info("User not found. IMSI %015" PRIu64 "", nas_ctx->m_emm_ctx.imsi);
+    epc_metrics_collector::instance().inc_attach_failure(0);
     return false;
   }
 
@@ -551,6 +558,7 @@ bool nas::handle_guti_attach_request_known_ue(nas*                              
     if (!hss->gen_auth_info_answer(emm_ctx->imsi, sec_ctx->k_asme, sec_ctx->autn, sec_ctx->rand, sec_ctx->xres)) {
       srsran::console("User not found. IMSI %015" PRIu64 "\n", emm_ctx->imsi);
       nas_logger.info("User not found. IMSI %015" PRIu64 "", emm_ctx->imsi);
+      epc_metrics_collector::instance().inc_attach_failure(0);
       return false;
     }
 
@@ -594,6 +602,8 @@ bool nas::handle_service_request(uint32_t                m_tmsi,
   hss_interface_nas*  hss  = itf.hss;
   gtpc_interface_nas* gtpc = itf.gtpc;
   mme_interface_nas*  mme  = itf.mme;
+
+  epc_metrics_collector::instance().inc_service_request_attempt();
 
   LIBLTE_ERROR_ENUM err = liblte_mme_unpack_service_request_msg((LIBLTE_BYTE_MSG_STRUCT*)nas_rx, &service_req);
   if (err != LIBLTE_SUCCESS) {
@@ -691,6 +701,8 @@ bool nas::handle_service_request(uint32_t                m_tmsi,
     // Save UE ctx to MME UE S1AP id
     s1ap->add_nas_ctx_to_mme_ue_s1ap_id_map(nas_ctx);
     s1ap->send_initial_context_setup_request(imsi, 5);
+    epc_metrics_collector::instance().inc_service_request_success();
+    epc_metrics_collector::instance().inc_paging_success();
     sec_ctx->ul_nas_count++;
   } else {
     srsran::console("Service Request -- Short MAC invalid\n");
@@ -747,6 +759,8 @@ bool nas::handle_detach_request(uint32_t                m_tmsi,
   s1ap_interface_nas* s1ap = itf.s1ap;
   hss_interface_nas*  hss  = itf.hss;
   gtpc_interface_nas* gtpc = itf.gtpc;
+
+  epc_metrics_collector::instance().inc_detach_attempt();
 
   LIBLTE_ERROR_ENUM err = liblte_mme_unpack_detach_request_msg((LIBLTE_BYTE_MSG_STRUCT*)nas_rx, &detach_req);
   if (err != LIBLTE_SUCCESS) {
@@ -812,6 +826,7 @@ bool nas::handle_detach_request(uint32_t                m_tmsi,
   ecm_ctx->mme_ue_s1ap_id = s1ap->get_next_mme_ue_s1ap_id();
   ecm_ctx->enb_ue_s1ap_id = enb_ue_s1ap_id;
   s1ap->send_ue_context_release_command(ecm_ctx->mme_ue_s1ap_id);
+  epc_metrics_collector::instance().inc_detach_success();
   return true;
 }
 
@@ -828,6 +843,8 @@ bool nas::handle_tracking_area_update_request(uint32_t                m_tmsi,
   srsran::console("Tracking Area Update Request -- S-TMSI 0x%x\n", m_tmsi);
   nas_logger.info("Tracking Area Update Request -- eNB UE S1AP Id %d", enb_ue_s1ap_id);
   srsran::console("Tracking Area Update Request -- eNB UE S1AP Id %d\n", enb_ue_s1ap_id);
+
+  epc_metrics_collector::instance().inc_tau_attempt();
 
   srsran::console("Warning: Tracking area update requests are not handled yet.\n");
   nas_logger.warning("Tracking area update requests are not handled yet.");
@@ -866,16 +883,20 @@ bool nas::handle_attach_request(srsran::byte_buffer_t* nas_rx)
   LIBLTE_MME_ATTACH_REQUEST_MSG_STRUCT           attach_req  = {};
   LIBLTE_MME_PDN_CONNECTIVITY_REQUEST_MSG_STRUCT pdn_con_req = {};
 
+  epc_metrics_collector::instance().inc_attach_attempt();
+
   // Get NAS Attach Request and PDN connectivity request messages
   LIBLTE_ERROR_ENUM err = liblte_mme_unpack_attach_request_msg((LIBLTE_BYTE_MSG_STRUCT*)nas_rx, &attach_req);
   if (err != LIBLTE_SUCCESS) {
     m_logger.error("Error unpacking NAS attach request. Error: %s", liblte_error_text[err]);
+    epc_metrics_collector::instance().inc_attach_failure(0);
     return false;
   }
   // Get PDN Connectivity Request*/
   err = liblte_mme_unpack_pdn_connectivity_request_msg(&attach_req.esm_msg, &pdn_con_req);
   if (err != LIBLTE_SUCCESS) {
     m_logger.error("Error unpacking NAS PDN Connectivity Request. Error: %s", liblte_error_text[err]);
+    epc_metrics_collector::instance().inc_attach_failure(0);
     return false;
   }
 
@@ -893,6 +914,7 @@ bool nas::handle_attach_request(srsran::byte_buffer_t* nas_rx)
     m_logger.info("Attach request -- M-TMSI: 0x%x", m_tmsi);
   } else {
     m_logger.error("Unhandled Mobile Id type in attach request");
+    epc_metrics_collector::instance().inc_attach_failure(0);
     return false;
   }
 
@@ -940,6 +962,7 @@ bool nas::handle_attach_request(srsran::byte_buffer_t* nas_rx)
             m_emm_ctx.imsi, m_sec_ctx.k_asme, m_sec_ctx.autn, m_sec_ctx.rand, m_sec_ctx.xres)) {
       srsran::console("User not found. IMSI %015" PRIu64 "\n", m_emm_ctx.imsi);
       m_logger.info("User not found. IMSI %015" PRIu64 "", m_emm_ctx.imsi);
+      epc_metrics_collector::instance().inc_attach_failure(0);
       return false;
     }
 
@@ -1046,6 +1069,7 @@ bool nas::handle_authentication_response(srsran::byte_buffer_t* nas_rx)
     // Authentication rejected
     srsran::console("UE Authentication Rejected.\n");
     m_logger.warning("UE Authentication Rejected.");
+    epc_metrics_collector::instance().inc_attach_failure(20);
 
     // Send back Athentication Reject
     pack_authentication_reject(nas_tx.get());
@@ -1157,6 +1181,7 @@ bool nas::handle_attach_complete(srsran::byte_buffer_t* nas_rx)
     m_logger.info("Sending EMM Information");
   }
   m_emm_ctx.state = EMM_STATE_REGISTERED;
+  epc_metrics_collector::instance().inc_attach_success();
   return true;
 }
 
@@ -1256,6 +1281,7 @@ bool nas::handle_tracking_area_update_request(srsran::byte_buffer_t* nas_rx)
 {
   srsran::console("Warning: Tracking Area Update Request messages not handled yet.\n");
   m_logger.warning("Warning: Tracking Area Update Request messages not handled yet.");
+  epc_metrics_collector::instance().inc_tau_attempt();
 
   srsran::unique_byte_buffer_t nas_tx;
 
@@ -1288,6 +1314,7 @@ bool nas::handle_authentication_failure(srsran::byte_buffer_t* nas_rx)
     m_logger.error("Error unpacking NAS authentication failure. Error: %s", liblte_error_text[err]);
     return false;
   }
+  epc_metrics_collector::instance().inc_attach_failure(auth_fail.emm_cause);
 
   switch (auth_fail.emm_cause) {
     case 20:
@@ -1346,6 +1373,7 @@ bool nas::handle_detach_request(srsran::byte_buffer_t* nas_msg)
   srsran::console("Detach request -- IMSI %015" PRIu64 "\n", m_emm_ctx.imsi);
   m_logger.info("Detach request -- IMSI %015" PRIu64 "", m_emm_ctx.imsi);
   LIBLTE_MME_DETACH_REQUEST_MSG_STRUCT detach_req;
+  epc_metrics_collector::instance().inc_detach_attempt();
 
   LIBLTE_ERROR_ENUM err = liblte_mme_unpack_detach_request_msg((LIBLTE_BYTE_MSG_STRUCT*)nas_msg, &detach_req);
   if (err != LIBLTE_SUCCESS) {
@@ -1364,6 +1392,7 @@ bool nas::handle_detach_request(srsran::byte_buffer_t* nas_msg)
   if (m_ecm_ctx.mme_ue_s1ap_id != 0) {
     m_s1ap->send_ue_context_release_command(m_ecm_ctx.mme_ue_s1ap_id);
   }
+  epc_metrics_collector::instance().inc_detach_success();
   return true;
 }
 

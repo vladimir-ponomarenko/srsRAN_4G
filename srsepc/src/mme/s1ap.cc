@@ -20,6 +20,7 @@
  */
 
 #include "srsepc/hdr/mme/s1ap.h"
+#include "srsepc/hdr/metrics/epc_metrics.h"
 #include "srsran/asn1/gtpc.h"
 #include "srsran/common/bcd_helpers.h"
 #include "srsran/common/liblte_security.h"
@@ -221,6 +222,7 @@ bool s1ap::s1ap_tx_pdu(const asn1::s1ap::s1ap_pdu_c& pdu, struct sctp_sndrcvinfo
     m_logger.error("Failed to send S1AP PDU. Error: %s ", strerror(errno));
     return false;
   }
+  epc_metrics_collector::instance().inc_s1mme_out();
 
   if (m_pcap_enable) {
     m_pcap.write_s1ap(buf->msg, buf->N_bytes);
@@ -231,6 +233,8 @@ bool s1ap::s1ap_tx_pdu(const asn1::s1ap::s1ap_pdu_c& pdu, struct sctp_sndrcvinfo
 
 void s1ap::handle_s1ap_rx_pdu(srsran::byte_buffer_t* pdu, struct sctp_sndrcvinfo* enb_sri)
 {
+  epc_metrics_collector::instance().inc_s1mme_in(pdu->N_bytes);
+
   // Save PCAP
   if (m_pcap_enable) {
     m_pcap.write_s1ap(pdu->msg, pdu->N_bytes);

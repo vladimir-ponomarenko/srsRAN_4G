@@ -21,6 +21,7 @@
 
 #include "srsepc/hdr/spgw/gtpu.h"
 #include "srsepc/hdr/mme/mme_gtpc.h"
+#include "srsepc/hdr/metrics/epc_metrics.h"
 #include "srsran/common/string_helpers.h"
 #include "srsran/common/network_utils.h"
 #include "srsran/upper/gtpu.h"
@@ -214,6 +215,7 @@ void spgw::gtpu::handle_sgi_pdu(srsran::unique_byte_buffer_t msg)
   uint32_t                                             spgw_teid;
   struct iphdr*                                        iph = (struct iphdr*)msg->msg;
   m_logger.debug("Received SGi PDU. Bytes %d", msg->N_bytes);
+  epc_metrics_collector::instance().inc_sgi_in(msg->N_bytes);
 
   if (iph->version != 4) {
     m_logger.info("IPv6 not supported yet.");
@@ -263,6 +265,7 @@ void spgw::gtpu::handle_sgi_pdu(srsran::unique_byte_buffer_t msg)
 
 void spgw::gtpu::handle_s1u_pdu(srsran::byte_buffer_t* msg)
 {
+  epc_metrics_collector::instance().inc_s1u_in(msg->N_bytes);
   srsran::gtpu_header_t header;
   srsran::gtpu_read_header(msg, &header, m_logger);
 
@@ -273,6 +276,7 @@ void spgw::gtpu::handle_s1u_pdu(srsran::byte_buffer_t* msg)
     m_logger.error("Could not write to TUN interface.");
   } else {
     m_logger.debug("Forwarded packet to TUN interface. Bytes= %d/%d", n, msg->N_bytes);
+    epc_metrics_collector::instance().inc_sgi_out(static_cast<uint64_t>(n));
   }
   return;
 }
@@ -308,6 +312,8 @@ void spgw::gtpu::send_s1u_pdu(srsran::gtp_fteid_t enb_fteid, srsran::byte_buffer
     m_logger.error("Error sending packet to eNB");
   } else if ((unsigned int)n != msg->N_bytes) {
     m_logger.error("Mis-match between packet bytes and sent bytes: Sent: %d/%d", n, msg->N_bytes);
+  } else {
+    epc_metrics_collector::instance().inc_s1u_out(static_cast<uint64_t>(n));
   }
 
 out:

@@ -19,6 +19,7 @@
  *
  */
 #include "srsepc/hdr/hss/hss.h"
+#include "srsepc/hdr/metrics/epc_metrics.h"
 #include "srsran/common/security.h"
 #include "srsran/common/string_helpers.h"
 #include <arpa/inet.h>
@@ -258,6 +259,7 @@ bool hss::gen_auth_info_answer(uint64_t imsi, uint8_t* k_asme, uint8_t* autn, ui
 {
 
   m_logger.debug("Generating AUTH info answer");
+  epc_metrics_collector::instance().inc_hss_auth_attempt();
   hss_ue_ctx_t* ue_ctx = get_ue_ctx(imsi);
   if (ue_ctx == nullptr) {
     srsran::console("User not found at HSS. IMSI: %015" PRIu64 "\n", imsi);
@@ -274,6 +276,7 @@ bool hss::gen_auth_info_answer(uint64_t imsi, uint8_t* k_asme, uint8_t* autn, ui
       break;
   }
   increment_ue_sqn(ue_ctx);
+  epc_metrics_collector::instance().inc_hss_auth_success();
   return true;
 }
 
